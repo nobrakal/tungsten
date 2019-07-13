@@ -33,9 +33,11 @@ instance Show a => Show (List a) where
       go NilF = "nil"
       go (ConsF a b) = "cons ("++show a ++") ("++b++")"
 
+-- | The Cons operator. Similar to 'Prelude.(:)' for Prelude lists.
 cons :: a -> List a -> List a
 cons x xs = fix (ConsF x xs)
 
+-- | The empty list.  Similar to 'Prelud.[]' for Prelude lists.
 nil :: List a
 nil = fix NilF
 

@@ -21,10 +21,12 @@ import Data.Coerce
 -- | Fixed point type
 newtype Fix f = Fix (f (Fix f))
 
+-- | Remove one level of fixpoint.
 unfix :: Fix f -> f (Fix f)
 unfix (Fix f) = f
 {-# INLINE unfix #-}
 
+-- | The fixpoint operator.
 fix :: f (Fix f) -> Fix f
 fix = Fix
 {-# INLINE fix #-}
@@ -47,11 +49,11 @@ ana :: Functor f => (b -> f b) -> b -> Fix f
 ana f b = buildR (\comb -> let c = comb . fmap c . f in c b)
 {-# INLINE ana #-}
 
--- | Hylomorphism
+-- | Hylomorphism.
 hylo :: Functor f => (f b -> b) -> (a -> f a) -> a -> b
 hylo f g = h where h = f . fmap h . g
 
--- Rewrite stuff
+-- | Type of arguments of 'buildR'.
 type Cata f = forall b. (f b -> b) -> b
 
 -- | Defining a function in term of 'buildR' allows fusion if this function is composed

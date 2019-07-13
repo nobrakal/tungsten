@@ -14,24 +14,27 @@ module Tungsten.Structure.Tree where
 
 import Tungsten.Fix
 
--- | The "factored-out" recursive type for binary trees
+-- | The "factored-out" recursive type for binary trees.
 data TreeF a b =
     EmptyF
   | LeafF a
   | NodeF b b
   deriving (Eq, Show, Functor)
 
--- | Binary trees
+-- | Binary trees.
 type Tree a = Fix (TreeF a)
 
+-- | The empty tree.
 empty :: Tree a
 empty = fix EmptyF
 {-# INLINE empty #-}
 
+-- | A leaf.
 leaf :: a -> Tree a
 leaf = fix . LeafF
 {-# INLINE leaf #-}
 
+-- | A node.
 node :: Tree a -> Tree a -> Tree a
 node = \a b -> fix (NodeF a b)
 {-# INLINE node #-}
