@@ -1,3 +1,4 @@
+import Fix
 import Tree
 
 main :: IO ()
