@@ -1,4 +1,5 @@
 # Tungsten
+[![Build Status](https://travis-ci.com/nobrakal/tungsten.svg?branch=master)](https://travis-ci.com/nobrakal/tungsten)
 
 This library provides a module `Tungsten.Fix` which is defining the `Fix` datatype alongside usual recursion-schemes (`cata`, `ana`, `para`...).
 
