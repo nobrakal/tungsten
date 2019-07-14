@@ -21,7 +21,7 @@ module Tungsten.Fix
   , fix, unfix
 
     -- * Recursion-schemes
-  , cata, para, ana, hylo
+  , cata, para, ana, apo, hylo
 
     -- * Tools for rewriting
   , Cata, buildR
