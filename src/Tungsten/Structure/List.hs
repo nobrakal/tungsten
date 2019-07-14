@@ -87,8 +87,8 @@ filter p xs = buildR $ \c ->
 
 -- | Transform a fixed-point list into a Prelude one.
 -- Can be fused with both good producers of fixed-point lists and good consumers of Prelude lists.
-toList :: List a -> [a]
-toList xs =
+fromList :: List a -> [a]
+fromList xs =
   build
   (\c n ->
      let go xs =
@@ -96,8 +96,10 @@ toList xs =
              NilF -> n
              ConsF a b -> c a b
      in cata go xs)
+{-# INLINE fromList #-}
 
 -- | Transform a Prelude list into a fixed-point one.
 -- Can be fused with both good producers of Prelude lists and good consumers of fixed-point lists.
-fromList :: [a] -> List a
-fromList xs = buildR $ \c -> Prelude.foldr (\x xs -> c (ConsF x xs)) (c NilF) xs
+toList :: [a] -> List a
+toList xs = buildR $ \c -> Prelude.foldr (\x xs -> c (ConsF x xs)) (c NilF) xs
+{-# INLINE toList #-}
