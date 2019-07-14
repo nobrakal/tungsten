@@ -6,8 +6,9 @@
 -- Maintainer : alexandre@moine.me
 -- Stability  : experimental
 --
--- This module provide the type 'Fix' which can be used to define
--- fixed-point structures (see examples in "Tungsten.Structure.List" or "Tungsten.Structure.Tree").
+-- This module provides the 'Fix' operator which can be used to define
+-- fixed-point structures
+-- (see examples in "Tungsten.Structure.List" or "Tungsten.Structure.Tree").
 --
 -- Defining a type in term of 'Fix' gives access to 'cata' and 'buildR'
 -- and the \"cata/buildR\" rewrite rule.
@@ -43,7 +44,7 @@ fix = Fix
 {-# INLINE fix #-}
 
 -- | Catamorphism.
--- Functions defined in term of 'cata' are subject to fusion with functions exprimed in term of 'buildR'.
+-- Functions defined in terms of 'cata' are subject to fusion with functions exprimed in terms of 'buildR'.
 cata :: Functor f => (f b -> b) -> Fix f -> b
 cata f = c
   where
@@ -51,14 +52,14 @@ cata f = c
 {-# INLINE [0] cata #-}
 
 -- | Paramorphism.
--- Functions defined in term of 'para' are /not/ subject to fusion.
+-- Functions defined in terms of 'para' are /not/ subject to fusion.
 para :: Functor f => (f (Fix f, a) -> a) -> Fix f -> a
 para t = p
   where
     p = t . fmap ((,) <*> p) . unfix
 
 -- | Anamorphism.
--- Defined in term of 'buildR', so subject to fusion with 'cata'.
+-- Defined in terms of 'buildR', so subject to fusion with 'cata'.
 ana :: Functor f => (b -> f b) -> b -> Fix f
 ana f b = buildR (\comb -> let c = comb . fmap c . f in c b)
 {-# INLINE ana #-}
@@ -74,7 +75,7 @@ hylo f g = h where h = f . fmap h . g
 -- | Type of arguments of 'buildR'.
 type Cata f = forall b. (f b -> b) -> b
 
--- | Defining a function in term of 'buildR' allows fusion if this function is composed
+-- | Defining a function in terms of 'buildR' allows fusion if this function is composed
 -- later with 'cata'.
 buildR :: Cata f -> Fix f
 buildR g = g fix

@@ -6,7 +6,7 @@
 -- Maintainer : alexandre@moine.me
 -- Stability  : experimental
 --
--- This module define a type isomorphic to binary trees, in terms of 'Fix' from
+-- This module defines a type isomorphic to binary trees, in terms of 'Fix' from
 -- "Tungsten.Fix".
 --
 -----------------------------------------------------------------------------
@@ -66,16 +66,14 @@ mapt f t = bind t (fix . LeafF . f)
 -- | @bind@ for trees, defined in terms of 'buildR' and 'cata'.
 -- Subject to fusion with both good producers and good consumers of trees.
 bind :: Tree a -> (a -> Tree b) -> Tree b
-bind t f =
-  buildR
-  (\u ->
-     cata
-     (\x ->
-         case x of
-           EmptyF -> u EmptyF
-           LeafF x -> cata u (f x)
-           NodeF a b -> u $ NodeF a b)
-     t)
+bind t f = buildR $ \u ->
+  cata
+  (\x ->
+      case x of
+        EmptyF -> u EmptyF
+        LeafF x -> cata u (f x)
+        NodeF a b -> u $ NodeF a b)
+  t
 {-# INLINE bind #-}
 
 -- | @hasLeaf s t@ tests if the leaf @s@ is present in the tree @t@

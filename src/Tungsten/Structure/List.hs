@@ -6,7 +6,7 @@
 -- Maintainer : alexandre@moine.me
 -- Stability  : experimental
 --
--- This module define a type isomorphic to linked lists, in terms of 'Fix' from
+-- This module defines a type isomorphic to linked lists, in terms of 'Fix' from
 -- "Tungsten.Fix".
 --
 -----------------------------------------------------------------------------
