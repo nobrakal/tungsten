@@ -7,49 +7,67 @@
 -- Stability  : experimental
 --
 -- This module provide the type 'Fix' which can be used to define
--- fixed-point structures (see examples in "Tungsten.Structure.List" or "Tungsten.Structure.List").
+-- fixed-point structures (see examples in "Tungsten.Structure.List" or "Tungsten.Structure.Tree").
 --
 -- Defining a type in term of 'Fix' gives access to 'cata' and 'buildR'
 -- and the \"cata/buildR\" rewrite rule.
 --
 -----------------------------------------------------------------------------
 
-module Tungsten.Fix where
+module Tungsten.Fix
+  ( -- * The fixed-point operator
+    Fix (..)
+  , fix, unfix
+
+    -- * Recursion-schemes
+  , cata, para, ana, hylo
+
+    -- * Tools for rewriting
+  , Cata, buildR
+  )
+where
 
 import Data.Coerce
 
--- | Fixed point type
+-- | Operator to define fixed-point types.
 newtype Fix f = Fix (f (Fix f))
 
--- | Remove one level of fixpoint.
+-- | Remove one level of fixed-point.
 unfix :: Fix f -> f (Fix f)
 unfix (Fix f) = f
 {-# INLINE unfix #-}
 
--- | The fixpoint operator.
+-- | A synonym for 'Fix'.
 fix :: f (Fix f) -> Fix f
 fix = Fix
 {-# INLINE fix #-}
 
--- | Catamorphism. Functions defined in term of 'cata' are subject to fusion.
+-- | Catamorphism.
+-- Functions defined in term of 'cata' are subject to fusion with functions exprimed in term of 'buildR'.
 cata :: Functor f => (f b -> b) -> Fix f -> b
 cata f = c
   where
     c = f . fmap c . unfix
 {-# INLINE [0] cata #-}
 
--- | Paramorphism
+-- | Paramorphism.
+-- Functions defined in term of 'para' are /not/ subject to fusion.
 para :: Functor f => (f (Fix f, a) -> a) -> Fix f -> a
 para t = p
   where
     p = t . fmap ((,) <*> p) . unfix
 
--- | Anamorphism. Functions defined in term of 'ana' are subject to fusion.
+-- | Anamorphism.
+-- Defined in term of 'buildR', so subject to fusion with 'cata'.
 ana :: Functor f => (b -> f b) -> b -> Fix f
 ana f b = buildR (\comb -> let c = comb . fmap c . f in c b)
 {-# INLINE ana #-}
 
 -- | Hylomorphism.
+--
+-- @
+-- hylo f g == 'cata' f . 'ana' g
+-- @
 hylo :: Functor f => (f b -> b) -> (a -> f a) -> a -> b
 hylo f g = h where h = f . fmap h . g
 

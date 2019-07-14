@@ -6,11 +6,22 @@
 -- Maintainer : alexandre@moine.me
 -- Stability  : experimental
 --
--- This module define a type for binary trees, in terms of 'Fix' from
--- "Tungsten.Fix", along with some examples.
+-- This module define a type isomorphic to binary trees, in terms of 'Fix' from
+-- "Tungsten.Fix".
 --
 -----------------------------------------------------------------------------
-module Tungsten.Structure.Tree where
+module Tungsten.Structure.Tree
+  ( -- * Binary trees as fixed-point
+    TreeF (..), Tree
+  , empty, leaf, node
+
+  -- * Classical operations on trees
+  , mapt, bind
+
+  -- * Operations on trees
+  , hasLeaf, treeFromList, leftTreeN
+  )
+where
 
 import Tungsten.Fix
 
@@ -21,7 +32,7 @@ data TreeF a b =
   | NodeF b b
   deriving (Eq, Show, Functor)
 
--- | Binary trees.
+-- | Binary trees expressed as a fixed-point.
 type Tree a = Fix (TreeF a)
 
 -- | The empty tree.
@@ -46,12 +57,14 @@ instance Show a => Show (Tree a) where
       go (LeafF a) = "leaf ( " ++ show a ++ ")"
       go (NodeF a b) = "node (" ++ a ++ ") (" ++ b ++ ")"
 
--- | Fmap for Tree
+-- | 'fmap' for trees.
+-- Subject to fusion with both good producers and good consumers of trees.
 mapt :: (a -> b) -> Tree a -> Tree b
 mapt f t = bind t (fix . LeafF . f)
 {-# INLINE mapt #-}
 
--- | Bind for Tree, defined in term of 'buildR'
+-- | @bind@ for trees, defined in terms of 'buildR' and 'cata'.
+-- Subject to fusion with both good producers and good consumers of trees.
 bind :: Tree a -> (a -> Tree b) -> Tree b
 bind t f =
   buildR
@@ -66,7 +79,7 @@ bind t f =
 {-# INLINE bind #-}
 
 -- | @hasLeaf s t@ tests if the leaf @s@ is present in the tree @t@
--- | Can be fused with good producers of trees.
+-- Subject to fusion with good producers of trees.
 hasLeaf :: Eq a => a -> Tree a -> Bool
 hasLeaf s = cata go
   where
@@ -76,13 +89,13 @@ hasLeaf s = cata go
 {-# INLINE hasLeaf #-}
 
 -- | Construct a binary tree from a list.
--- | This function is subject to fusion with both good producers of (Prelude) lists and good consummers of trees.
+-- Subject to fusion with both good producers of Prelude lists and good consumers of trees.
 treeFromList :: [Tree a] -> Tree a
-treeFromList xs = buildR (\g -> foldr (\x -> g . NodeF (cata g x)) (g EmptyF) xs)
+treeFromList xs = buildR $ \g -> foldr (\x -> g . NodeF (cata g x)) (g EmptyF) xs
 {-# INLINE treeFromList #-}
 
 -- | 'leftTree n' construct a tree with n leaves from 1 to n.
--- | Can be fused with good consummers of trees.
+-- Subject to fusion with good consumers of trees.
 leftTreeN :: Int -> Tree Int
 leftTreeN = ana go . Right
   where

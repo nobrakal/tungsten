@@ -6,11 +6,22 @@
 -- Maintainer : alexandre@moine.me
 -- Stability  : experimental
 --
--- This module define a type for lists, in terms of 'Fix' from
--- "Fusion.Fix", along with some examples.
+-- This module define a type isomorphic to linked lists, in terms of 'Fix' from
+-- "Tungsten.Fix".
 --
 -----------------------------------------------------------------------------
-module Tungsten.Structure.List where
+module Tungsten.Structure.List
+  ( -- * Lists as fixed-point
+    ListF (..), List
+  , nil, cons
+
+  -- * Classical operations
+  , foldr, map, filter
+
+  -- * Conversion
+  , toList, fromList
+  )
+where
 
 import Prelude hiding (foldr, fromList, map, filter)
 import qualified Prelude as Prelude
@@ -18,13 +29,13 @@ import qualified Prelude as Prelude
 import Tungsten.Fix
 import GHC.Base (build)
 
--- | The "factored-out" recursive type for lists
+-- | The factored-out recursive type for lists.
 data ListF a b =
     NilF
   | ConsF a b
   deriving (Eq, Show, Functor)
 
--- | Lists
+-- | Linked lists as a fixed-point.
 type List a = Fix (ListF a)
 
 instance Show a => Show (List a) where
@@ -33,38 +44,15 @@ instance Show a => Show (List a) where
       go NilF = "nil"
       go (ConsF a b) = "cons ("++show a ++") ("++b++")"
 
--- | The Cons operator. Similar to 'Prelude.(:)' for Prelude lists.
-cons :: a -> List a -> List a
-cons x xs = fix (ConsF x xs)
-
--- | The empty list.  Similar to 'Prelud.[]' for Prelude lists.
+-- | The empty list. Similar to 'Prelude.[]' for Prelude lists.
 nil :: List a
 nil = fix NilF
 
--- | Transform a fixed-point list into a Prelude one.
--- | Can be fused with both good consumers of Prelude lists and good producers of fixed-point lists.
-toList :: List a -> [a]
-toList xs =
-  build
-  (\c n ->
-     let go xs =
-           case xs of
-             NilF -> n
-             ConsF a b -> c a b
-     in cata go xs)
+-- | The cons operator. Similar to 'Prelude.(:)' for Prelude lists.
+cons :: a -> List a -> List a
+cons x xs = fix (ConsF x xs)
 
--- | Transform a Prelude list into a fixed-point one.
-fromList :: [a] -> List a
-fromList = Prelude.foldr cons nil
-
--- | Give the list of suffixes of a list.
-suff :: List a -> List (List a)
-suff = para go
-  where
-    go NilF = nil
-    go (ConsF x (xs,b)) = cons (cons x xs) b
-
--- | The classical right fold. Can be fused with good producers of fixed-point lists.
+-- | The classical right fold. Can be fused with good producers of lists.
 foldr :: (a -> b -> b) -> b -> List a -> b
 foldr c n = cata go
   where
@@ -72,7 +60,8 @@ foldr c n = cata go
     go (ConsF a b) = c a b
 {-# INLINE foldr #-}
 
--- | The classical map. Can be fused with good producers and good consummers of fixed-point lists.
+-- | The classical map.
+-- Can be fused with good producers and good consummers of lists.
 map :: (a -> b) -> List a -> List b
 map f xs = buildR $ \c ->
   let go x =
@@ -82,8 +71,8 @@ map f xs = buildR $ \c ->
   in cata go xs
 {-# INLINE map #-}
 
--- | Can be fused with good producers of fixed-point lists.
--- | Can be fused with good producers and good consummers of fixed-point lists.
+-- | The filter operation
+-- Can be fused with good producers and good consummers of lists.
 filter :: (a -> Bool) -> List a -> List a
 filter p xs = buildR $ \c ->
   let go x =
@@ -95,3 +84,20 @@ filter p xs = buildR $ \c ->
             else b
   in cata go xs
 {-# INLINE filter #-}
+
+-- | Transform a fixed-point list into a Prelude one.
+-- Can be fused with both good producers of fixed-point lists and good consumers of Prelude lists.
+toList :: List a -> [a]
+toList xs =
+  build
+  (\c n ->
+     let go xs =
+           case xs of
+             NilF -> n
+             ConsF a b -> c a b
+     in cata go xs)
+
+-- | Transform a Prelude list into a fixed-point one.
+-- Can be fused with both good producers of Prelude lists and good consumers of fixed-point lists.
+fromList :: [a] -> List a
+fromList xs = buildR $ \c -> Prelude.foldr (\x xs -> c (ConsF x xs)) (c NilF) xs
