@@ -1,8 +1,22 @@
 # Tungsten
 [![Build Status](https://travis-ci.com/nobrakal/tungsten.svg?branch=master)](https://travis-ci.com/nobrakal/tungsten)
 
-This library provides a module `Tungsten.Fix` which is defining the `Fix` datatype alongside usual recursion-schemes (`cata`, `ana`, `para`...).
+## Purpose
 
-Examples of use can be seen in modules `Tungsten.Structure.Tree` or `Tungsten.Structure.List`.
+The `tungsten` library provides facilities to bring [deforestation](https://en.wikipedia.org/wiki/Deforestation_(computer_science)) to any recursive datatype _for free_.
 
-Some tests can be found in the `test/` directory. They use the great [`inspection-testing` package](http://hackage.haskell.org/package/inspection-testing) to test rewrite rules.
+The only prerequisite is to define the concerned datatype as a [fixed-point](https://en.wikipedia.org/wiki/Fixed_point_(mathematics)) using the provided `Fix` operator from the `Tungsten.Fix` module.
+
+Some examples of use can be seen in:
+
+* `Tungsten.Structure.List`
+* `Tungsten.Structure.Tree`
+
+## Tests
+
+Tests can be found in the `test/` directory.
+They use the great [`inspection-testing` package](http://hackage.haskell.org/package/inspection-testing) to test rewrite-rules firing.
+
+## The name
+
+[Tungsten](https://en.wikipedia.org/wiki/Tungsten) is the metal with the highest fusion (or melting) point.
