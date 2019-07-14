@@ -4,11 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0978b393de8b201bf2a356346c94e8b4e034de6b13e967fa927adc0ab3147c9f
+-- hash: 2fd4897f2da2ed9516bffb3227dc5cac4598361a1584e21bb61bb9ea5eb66d7e
 
 name:           tungsten
 version:        0.1.0.0
+synopsis:       Bring fusion to everyone
 description:    Please see the README on GitHub at <https://github.com/nobrakal/tungsten#readme>
+category:       Recursion, Optimization
 homepage:       https://github.com/nobrakal/tungsten#readme
 bug-reports:    https://github.com/nobrakal/tungsten/issues
 author:         Alexandre Moine
