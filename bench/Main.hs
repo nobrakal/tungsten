@@ -1,4 +1,5 @@
 {-# Language TypeSynonymInstances, FlexibleInstances #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 import Tungsten.Fix
 import qualified Tungsten.Structure.List as L
@@ -8,13 +9,11 @@ import Control.DeepSeq
 
 import Prelude hiding (sum)
 
-import Data.List (reverse)
-
 instance NFData a => NFData (L.List a) where
   rnf (Fix x) =
     case x of
       L.NilF -> ()
-      L.ConsF x y -> rnf x `seq` rnf y
+      L.ConsF y ys -> rnf y `seq` rnf ys
 
 intList :: Int -> [Int]
 intList x = [1..x]

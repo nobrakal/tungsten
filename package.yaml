@@ -25,6 +25,9 @@ dependencies:
 library:
   source-dirs: src
 
+ghc-options:
+- -Wall
+
 tests:
   tungsten-test:
     main:                Main.hs
@@ -32,6 +35,9 @@ tests:
     dependencies:
     - tungsten
     - inspection-testing >= 0.4 && < 0.5
+    ghc-options:
+    - -Wall
+    - -fspec-constr
 
 benchmarks:
   tungsten-bench:
@@ -41,3 +47,6 @@ benchmarks:
     - tungsten
     - criterion >= 1.5.5.0 && < 1.6
     - deepseq >= 1.4.4.0 && < 1.5
+    ghc-options:
+    - -Wall
+    - -fspec-constr

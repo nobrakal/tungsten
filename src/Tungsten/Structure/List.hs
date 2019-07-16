@@ -23,7 +23,7 @@ module Tungsten.Structure.List
   )
 where
 
-import Prelude hiding (foldr, fromList, map, filter)
+import Prelude hiding (foldr, map, filter)
 import qualified Prelude as Prelude
 
 import Tungsten.Fix
@@ -91,8 +91,8 @@ fromList :: List a -> [a]
 fromList xs =
   build
   (\c n ->
-     let go xs =
-           case xs of
+     let go ys =
+           case ys of
              NilF -> n
              ConsF a b -> c a b
      in cata go xs)
@@ -101,5 +101,5 @@ fromList xs =
 -- | Transform a Prelude list into a fixed-point one.
 -- Can be fused with both good producers of Prelude lists and good consumers of fixed-point lists.
 toList :: [a] -> List a
-toList xs = buildR $ \c -> Prelude.foldr (\x xs -> c (ConsF x xs)) (c NilF) xs
+toList xs = buildR $ \c -> Prelude.foldr (\x ys -> c (ConsF x ys)) (c NilF) xs
 {-# INLINE toList #-}

@@ -4,7 +4,6 @@ module List where
 
 import Prelude hiding (foldr, map)
 
-import Tungsten.Fix
 import Tungsten.Structure.List
 
 import Test.Inspection
