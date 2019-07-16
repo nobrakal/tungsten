@@ -66,6 +66,7 @@ ana f b = buildR (\comb -> let c = comb . fmap c . f in c b)
 
 -- | Apomorphism.
 -- Functions defined in terms of 'apo' are /not/ subject to fusion.
+apo :: Functor f => (b -> f (Either (Fix f) b)) -> b -> Fix f
 apo g = a where a = fix . (fmap (either id a)) . g
 
 -- | Hylomorphism.

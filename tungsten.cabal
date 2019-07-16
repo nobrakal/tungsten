@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2fd4897f2da2ed9516bffb3227dc5cac4598361a1584e21bb61bb9ea5eb66d7e
+-- hash: 6a3d012480aef432b60f41aff58c0a975f97e7495f183f59cb077095bb303829
 
 name:           tungsten
 version:        0.1.0.0
@@ -53,5 +53,19 @@ test-suite tungsten-test
   build-depends:
       base >=4.7 && <5
     , inspection-testing >=0.4 && <0.5
+    , tungsten
+  default-language: Haskell2010
+
+benchmark tungsten-bench
+  type: exitcode-stdio-1.0
+  main-is: Main.hs
+  other-modules:
+      Paths_tungsten
+  hs-source-dirs:
+      bench
+  build-depends:
+      base >=4.7 && <5
+    , criterion >=1.5.5.0 && <1.6
+    , deepseq >=1.4.4.0 && <1.5
     , tungsten
   default-language: Haskell2010

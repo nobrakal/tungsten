@@ -32,3 +32,12 @@ tests:
     dependencies:
     - tungsten
     - inspection-testing >= 0.4 && < 0.5
+
+benchmarks:
+  tungsten-bench:
+    main:                Main.hs
+    source-dirs:         bench
+    dependencies:
+    - tungsten
+    - criterion >= 1.5.5.0 && < 1.6
+    - deepseq >= 1.4.4.0 && < 1.5
