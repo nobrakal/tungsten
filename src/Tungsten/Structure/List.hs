@@ -9,6 +9,9 @@
 -- This module defines a type isomorphic to linked lists, in terms of 'Fix' from
 -- "Tungsten.Fix".
 --
+-- A good consumer is a function that can be fused with a good producer.
+-- A good producer is a function that can be fused with a good consumer.
+--
 -----------------------------------------------------------------------------
 module Tungsten.Structure.List
   ( -- * Lists as fixed-point
@@ -52,7 +55,7 @@ nil = fix NilF
 cons :: a -> List a -> List a
 cons x xs = fix (ConsF x xs)
 
--- | The classical right fold. Can be fused with good producers of lists.
+-- | The classical right fold. Good consumer.
 foldr :: (a -> b -> b) -> b -> List a -> b
 foldr c n = cata go
   where
@@ -61,7 +64,7 @@ foldr c n = cata go
 {-# INLINE foldr #-}
 
 -- | The classical map.
--- Can be fused with good producers and good consummers of lists.
+-- Good consumer and good producer.
 map :: (a -> b) -> List a -> List b
 map f xs = buildR $ \c ->
   let go x =
@@ -71,8 +74,8 @@ map f xs = buildR $ \c ->
   in cata go xs
 {-# INLINE map #-}
 
--- | The filter operation
--- Can be fused with good producers and good consummers of lists.
+-- | The filter operation.
+-- Good consumer and good producer.
 filter :: (a -> Bool) -> List a -> List a
 filter p xs = buildR $ \c ->
   let go x =
@@ -86,7 +89,7 @@ filter p xs = buildR $ \c ->
 {-# INLINE filter #-}
 
 -- | Transform a fixed-point list into a Prelude one.
--- Can be fused with both good producers of fixed-point lists and good consumers of Prelude lists.
+-- Good producer (of fixed-point lists) and good consumer (of Prelude lists).
 fromList :: List a -> [a]
 fromList xs =
   build
@@ -99,7 +102,7 @@ fromList xs =
 {-# INLINE fromList #-}
 
 -- | Transform a Prelude list into a fixed-point one.
--- Can be fused with both good producers of Prelude lists and good consumers of fixed-point lists.
+-- Good producer (of Prelude lists) and good consumer of (fixed-point lists).
 toList :: [a] -> List a
 toList xs = buildR $ \c -> Prelude.foldr (\x ys -> c (ConsF x ys)) (c NilF) xs
 {-# INLINE toList #-}
