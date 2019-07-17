@@ -82,14 +82,14 @@ hylo f g x = cata f (ana g x)
 -- | Type of arguments of 'buildR'.
 type Cata f = forall b. (f b -> b) -> b
 
--- | 'buildR' abstract the build of a structure with respect to the fixed-point
+-- | 'buildR' abstracts the build of a structure with respect to the fixed-point
 -- combinator, such that we have the following rewrite rule (named \"cata/buildR\"):
 --
 -- @
 -- cata f (buildR g) = g f
 -- @
 --
--- When firing, this remove the building of an intermediate structure.
+-- When firing, this remove the build of an intermediate structure.
 -- A function expressed with 'buildR' is called a /good producer/.
 --
 -- Note 1. Without rewriting, 'buildR' is just:
@@ -98,7 +98,11 @@ type Cata f = forall b. (f b -> b) -> b
 -- buildR g = g Fix
 -- @
 --
--- Note 2. If @g = cata@ and a rewriting did not happen,
+-- Note 2. The validity of the \"cata/buildR\" rule is guaranteed by [free theorems
+-- of Wadler](https://doi.org/10.1145/99370.99404). They are known to fail in presence of
+-- 'seq', be careful.
+--
+-- Note 3. If @g = cata@ and a rewriting did not happen,
 -- then the \"cata/id\" rule will replace the @cata Fix@ obtained with the inlining
 -- of 'buildR' by 'id'.
 buildR :: Cata f -> Fix f
