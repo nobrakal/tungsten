@@ -17,7 +17,6 @@
 -- To use efficiently this module, compile with rewrite rules enabled.
 --
 -----------------------------------------------------------------------------
-
 module Tungsten.Fix
   ( -- * The fixed-point operator
     Fix (..)

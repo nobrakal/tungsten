@@ -95,7 +95,7 @@ treeFromList :: [Tree a] -> Tree a
 treeFromList xs = buildR $ \g -> foldr (\x -> g . NodeF (cata g x)) (g EmptyF) xs
 {-# INLINE treeFromList #-}
 
--- | 'leftTree n' construct a tree with n leaves from 1 to n.
+-- | @leftTree n@ construct a tree with n leaves from 1 to n.
 -- Good producer.
 leftTreeN :: Int -> Tree Int
 leftTreeN n = ana go (Right 1)

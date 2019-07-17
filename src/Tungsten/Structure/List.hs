@@ -96,7 +96,7 @@ range start end = ana go start
 {-# INLINE range #-}
 
 -- | Transform a fixed-point list into a Prelude one.
--- Good producer (of fixed-point lists) and good consumer (of Prelude lists).
+-- Good producer (of Prelude lists) and good consumer (of fixed-point lists).
 fromList :: List a -> [a]
 fromList xs =
   build
@@ -109,7 +109,7 @@ fromList xs =
 {-# INLINE fromList #-}
 
 -- | Transform a Prelude list into a fixed-point one.
--- Good producer (of Prelude lists) and good consumer of (fixed-point lists).
+-- Good producer (fixed-point lists) and good consumer of (of Prelude lists).
 toList :: [a] -> List a
 toList xs = buildR $ \c -> Prelude.foldr (\x ys -> c (ConsF x ys)) (c NilF) xs
 {-# INLINE toList #-}
