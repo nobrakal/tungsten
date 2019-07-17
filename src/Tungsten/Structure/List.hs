@@ -19,14 +19,14 @@ module Tungsten.Structure.List
   , nil, cons
 
   -- * Classical operations
-  , foldr, map, filter
+  , foldr, map, elem, range
 
   -- * Conversion
   , toList, fromList
   )
 where
 
-import Prelude hiding (foldr, map, filter)
+import Prelude hiding (foldr, map, elem, sum)
 import qualified Prelude as Prelude
 
 import Tungsten.Fix
@@ -74,19 +74,26 @@ map f xs = buildR $ \c ->
   in cata go xs
 {-# INLINE map #-}
 
--- | The filter operation.
--- Good consumer and good producer.
-filter :: (a -> Bool) -> List a -> List a
-filter p xs = buildR $ \c ->
-  let go x =
-        case x of
-          NilF -> c NilF
-          ConsF a b ->
-            if p a
-            then c (ConsF a b)
-            else b
-  in cata go xs
-{-# INLINE filter #-}
+-- | Search an element in a list.
+-- Good consumer.
+elem :: Eq a => a -> List a -> Bool
+elem e = cata go
+  where
+    go NilF = False
+    go (ConsF a b) = a == e || b
+{-# INLINE elem #-}
+
+-- | @range start end@ will produce a list containing int
+-- in ascending order from @start@ (inclusive) to @end@ (exclusive).
+-- Good producer.
+range :: Int -> Int -> List Int
+range start end = ana go start
+  where
+    go n =
+      if n > end
+      then NilF
+      else ConsF n (n+1)
+{-# INLINE range #-}
 
 -- | Transform a fixed-point list into a Prelude one.
 -- Good producer (of fixed-point lists) and good consumer (of Prelude lists).

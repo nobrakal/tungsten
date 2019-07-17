@@ -11,7 +11,10 @@
 -- (see examples in "Tungsten.Structure.List" or "Tungsten.Structure.Tree").
 --
 -- Defining a type in term of 'Fix' gives access to 'cata' and 'buildR'
--- and the \"cata/buildR\" rewrite rule.
+-- and the \"cata/buildR\" rewrite rule (see comment for 'buildR' for how to
+-- use it).
+--
+-- To use efficiently this module, compile with rewrite rules enabled.
 --
 -----------------------------------------------------------------------------
 
@@ -44,7 +47,7 @@ fix = Fix
 {-# INLINE fix #-}
 
 -- | Catamorphism.
--- Functions defined in terms of 'cata' are subject to fusion with functions exprimed in terms of 'buildR'.
+-- Functions defined in terms of 'cata' (or \"good consumers\") are subject to fusion with functions exprimed in terms of 'buildR' (or \"good producers\").
 cata :: Functor f => (f b -> b) -> Fix f -> b
 cata f = c
   where
@@ -80,10 +83,26 @@ hylo f g = h where h = f . fmap h . g
 -- | Type of arguments of 'buildR'.
 type Cata f = forall b. (f b -> b) -> b
 
--- | Defining a function in terms of 'buildR' allows fusion if this function is composed
--- later with 'cata'.
+-- | 'buildR' abstract the build of a structure with respect to the fixed-point
+-- combinator, such that we have the following rewrite rule (named \"cata/buildR\"):
+--
+-- @
+-- cata f (buildR g) = g f
+-- @
+--
+-- When firing, this remove the building of an intermediate structure.
+--
+-- Note 1. Without rewriting, 'buildR' is just:
+--
+-- @
+-- buildR g = g Fix
+-- @
+--
+-- Note 2. If @g = cata@ and a rewriting did not happen,
+-- then the \"cata/id\" rule will replace the @cata Fix@ obtained with the inlining
+-- of 'buildR' by 'id'.
 buildR :: Cata f -> Fix f
-buildR g = g fix
+buildR g = g Fix
 {-# INLINE [1] buildR #-}
 
 {-# RULES

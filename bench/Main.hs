@@ -19,12 +19,7 @@ intList :: Int -> [Int]
 intList x = [1..x]
 
 intListL :: Int -> L.List Int
-intListL x = ana go 1
-  where
-    go n =
-      if n >= x
-      then L.NilF
-      else L.ConsF n (n+1)
+intListL = L.range 0
 
 sum :: [Int] -> Int
 sum = foldr (+) 0
