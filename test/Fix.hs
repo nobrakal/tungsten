@@ -11,3 +11,9 @@ cataAna  f g x = cata f (ana g x)
 cataAnaR f g x = h x where h = f . fmap h . g
 
 inspect $ 'cataAna === 'cataAnaR
+
+cataFix, cataFixR :: Functor f => Fix f -> Fix f
+cataFix  x = cata Fix x
+cataFixR x = x
+
+inspect $ 'cataFix === 'cataFixR
