@@ -41,6 +41,7 @@ data ListF a b =
 -- | Linked lists as a fixed-point.
 type List a = Fix (ListF a)
 
+-- | 'show' is a good consumer.
 instance Show a => Show (List a) where
   show = cata go
     where

@@ -77,7 +77,7 @@ apo g = a where a = fix . (fmap (either id a)) . g
 -- hylo f g == 'cata' f . 'ana' g
 -- @
 hylo :: Functor f => (f b -> b) -> (a -> f a) -> a -> b
-hylo f g = h where h = f . fmap h . g
+hylo f g x = cata f (ana g x)
 
 -- | Type of arguments of 'buildR'.
 type Cata f = forall b. (f b -> b) -> b
@@ -90,6 +90,7 @@ type Cata f = forall b. (f b -> b) -> b
 -- @
 --
 -- When firing, this remove the building of an intermediate structure.
+-- A function expressed with 'buildR' is called a /good producer/.
 --
 -- Note 1. Without rewriting, 'buildR' is just:
 --

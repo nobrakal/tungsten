@@ -53,6 +53,7 @@ node :: Tree a -> Tree a -> Tree a
 node = \a b -> fix (NodeF a b)
 {-# INLINE node #-}
 
+-- | 'show' is a good consumer.
 instance Show a => Show (Tree a) where
   show = cata go
     where
