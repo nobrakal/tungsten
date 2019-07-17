@@ -35,13 +35,13 @@ inspect $ 'dBind === 'dBindR
 
 hasLeafleftTree,hasLeafleftTreeR :: Int -> Int -> Bool
 hasLeafleftTree s n  = hasLeaf s (leftTreeN n)
-hasLeafleftTreeR s n = go (Right n)
+hasLeafleftTreeR s n = go (Right 1)
   where
-    go (Left n) = n == s
-    go (Right n) =
-      if n <= 0
-      then False
-      else if (go $ Left n) then True else go (Right $ n-1)
+    go (Left n') = n' == s
+    go (Right n') =
+      if n' <= n
+      then if (go (Left n')) then True else go (Right (n'+1))
+      else False
 
 inspect $ 'hasLeafleftTree === 'hasLeafleftTreeR
 

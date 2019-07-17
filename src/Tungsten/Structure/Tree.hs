@@ -57,7 +57,7 @@ instance Show a => Show (Tree a) where
   show = cata go
     where
       go EmptyF = "empty"
-      go (LeafF a) = "leaf ( " ++ show a ++ ")"
+      go (LeafF a) = "leaf (" ++ show a ++ ")"
       go (NodeF a b) = "node (" ++ a ++ ") (" ++ b ++ ")"
 
 -- | 'fmap' for trees.
@@ -98,11 +98,11 @@ treeFromList xs = buildR $ \g -> foldr (\x -> g . NodeF (cata g x)) (g EmptyF) x
 -- | 'leftTree n' construct a tree with n leaves from 1 to n.
 -- Good producer.
 leftTreeN :: Int -> Tree Int
-leftTreeN = ana go . Right
+leftTreeN n = ana go (Right 1)
   where
-    go (Left n) = LeafF n
-    go (Right n) =
-      if n <= 0
-      then EmptyF
-      else NodeF (Left n) (Right $ n-1)
+    go (Left n') = LeafF n'
+    go (Right n') =
+      if n' <= n
+      then NodeF (Left n') (Right (n' + 1))
+      else EmptyF
 {-# INLINE leftTreeN #-}
