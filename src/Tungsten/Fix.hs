@@ -47,7 +47,7 @@ fix = Fix
 
 -- | Catamorphism.
 -- Functions defined in terms of 'cata' (or \"good consumers\") are subject to fusion with functions exprimed in terms of 'buildR' (or \"good producers\").
-cata :: Functor f => (f b -> b) -> Fix f -> b
+cata :: Functor f => (f a -> a) -> Fix f -> a
 cata f = c
   where
     c = f . fmap c . unfix
@@ -62,13 +62,13 @@ para t = p
 
 -- | Anamorphism.
 -- Defined in terms of 'buildR', so subject to fusion with 'cata'.
-ana :: Functor f => (b -> f b) -> b -> Fix f
+ana :: Functor f => (a -> f a) -> a -> Fix f
 ana f b = buildR (\comb -> let c = comb . fmap c . f in c b)
 {-# INLINE ana #-}
 
 -- | Apomorphism.
 -- Functions defined in terms of 'apo' are /not/ subject to fusion.
-apo :: Functor f => (b -> f (Either (Fix f) b)) -> b -> Fix f
+apo :: Functor f => (a -> f (Either (Fix f) a)) -> a -> Fix f
 apo g = a where a = fix . (fmap (either id a)) . g
 
 -- | Hylomorphism.
@@ -80,7 +80,7 @@ hylo :: Functor f => (f b -> b) -> (a -> f a) -> a -> b
 hylo f g x = cata f (ana g x)
 
 -- | Type of arguments of 'buildR'.
-type Cata f = forall b. (f b -> b) -> b
+type Cata f = forall a. (f a -> a) -> a
 
 -- | 'buildR' abstracts the build of a structure with respect to the fixed-point
 -- combinator, such that we have the following rewrite rule (named \"cata/buildR\"):
