@@ -3,26 +3,28 @@
 
 ## Purpose
 
-The `tungsten` library provides facilities to bring [deforestation](https://en.wikipedia.org/wiki/Deforestation_(computer_science)) to any recursive datatype _for free_.
+The `tungsten` library provides facilities to bring [deforestation](https://en.wikipedia.org/wiki/Deforestation_(computer_science)) to any recursive structure _for free_.
 
-The only prerequisite is to define the concerned datatype as a [fixed-point](https://en.wikipedia.org/wiki/Fixed_point_(mathematics)) using the provided `Fix` operator from the `Tungsten.Fix` module.
+The only prerequisite is to define the concerned structure as a [fixed-point](https://en.wikipedia.org/wiki/Fixed_point_(mathematics)) using the provided `Fix` operator from the `Tungsten.Fix` module.
 
 Some examples of use can be seen in:
 
-* `Tungsten.Structure.List`
-* `Tungsten.Structure.Tree`
+* [`Tungsten.Structure.List`](src/Tungsten/Structure/List.hs)
+* [`Tungsten.Structure.Tree`](src/Tungsten/Structure/Tree.hs)
 
-## Is this working?
-
-### Proof
+## Is this valid?
 
 See a more-or-less formal proof in [`doc/validity.md`](doc/validity.md).
 
-### Tests
+## Is this working?
 
 Even if valid from a theoritical point of view, does it work?
 
 Some tests can be found in the `test/` directory. They use the great [`inspection-testing` package](http://hackage.haskell.org/package/inspection-testing) to test rewrite-rules firing.
+
+## Is does not work for me!
+
+Be sure to compile with rewrite rules enabled and the `-fspec-constr` flag.
 
 ## The name
 
