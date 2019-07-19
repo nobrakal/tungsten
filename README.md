@@ -12,10 +12,17 @@ Some examples of use can be seen in:
 * `Tungsten.Structure.List`
 * `Tungsten.Structure.Tree`
 
-## Tests
+## Is this working?
 
-Tests can be found in the `test/` directory.
-They use the great [`inspection-testing` package](http://hackage.haskell.org/package/inspection-testing) to test rewrite-rules firing.
+### Proof
+
+See a more-or-less formal proof in `doc/validity.md`.
+
+### Tests
+
+Even if valid from a theoritical point of view, does it work?
+
+Some tests can be found in the `test/` directory. They use the great [`inspection-testing` package](http://hackage.haskell.org/package/inspection-testing) to test rewrite-rules firing.
 
 ## The name
 

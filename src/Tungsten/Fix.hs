@@ -100,7 +100,7 @@ type Cata f = forall a. (f a -> a) -> a
 --
 -- Note 2. The validity of the \"cata/buildR\" rule is guaranteed by [free theorems
 -- of Wadler](https://doi.org/10.1145/99370.99404). They are known to fail in presence of
--- 'seq', be careful.
+-- 'seq' and 'undefined', be careful.
 --
 -- Note 3. If @g = cata@ and a rewriting did not happen,
 -- then the \"cata/id\" rule will replace the @cata Fix@ obtained with the inlining
