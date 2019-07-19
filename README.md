@@ -16,7 +16,7 @@ Some examples of use can be seen in:
 
 ### Proof
 
-See a more-or-less formal proof in `doc/validity.md`.
+See a more-or-less formal proof in [`doc/validity.md`](doc/validity.md).
 
 ### Tests
 
