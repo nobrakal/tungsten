@@ -5,7 +5,7 @@
 
 The `tungsten` library provides facilities to bring [deforestation](https://en.wikipedia.org/wiki/Deforestation_(computer_science)) to any recursive structure _for free_.
 
-The only prerequisite is to define the concerned structure as a [fixed-point](https://en.wikipedia.org/wiki/Fixed_point_(mathematics)) using the provided `Fix` operator from the `Tungsten.Fix` module.
+The only prerequisite is to define the concerned structure as a [fixed-point](https://en.wikipedia.org/wiki/Fixed_point_(mathematics)) using the provided `Fix` operator from the [`Tungsten.Fix`](src/Tungsten/Fix.hs) module. It also defines a generalization of the [`foldr/build`] rewrite rule, targeting _catamorphisms_ on any fixed-point structures.
 
 Some examples of use can be seen in:
 
