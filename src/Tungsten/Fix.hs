@@ -14,7 +14,8 @@
 -- and the \"cata/buildR\" rewrite rule (see comment for 'buildR' for how to
 -- use it).
 --
--- To use efficiently this module, compile with rewrite rules enabled.
+-- To use efficiently this module, compile with rewrite rules enabled and
+-- the @-fspec-constr@ flag.
 --
 -----------------------------------------------------------------------------
 module Tungsten.Fix
@@ -46,7 +47,8 @@ fix = Fix
 {-# INLINE fix #-}
 
 -- | Catamorphism.
--- Functions defined in terms of 'cata' (or \"good consumers\") are subject to fusion with functions exprimed in terms of 'buildR' (or \"good producers\").
+-- Functions defined in terms of 'cata' (or \"good consumers\") are subject
+-- to fusion with functions exprimed in terms of 'buildR' (or \"good producers\").
 cata :: Functor f => (f a -> a) -> Fix f -> a
 cata f = c
   where
@@ -99,8 +101,8 @@ type Cata f = forall a. (f a -> a) -> a
 -- @
 --
 -- Note 2. The validity of the \"cata/buildR\" rule is guaranteed by [free theorems
--- of Wadler](https://doi.org/10.1145/99370.99404). They are known to fail in presence of
--- 'seq' and 'undefined', be careful.
+-- of Wadler](https://doi.org/10.1145/99370.99404). They are known to fail in
+-- presence of 'seq' and 'undefined', be careful.
 --
 -- Note 3. If @g = cata@ and a rewriting did not happen,
 -- then the \"cata/id\" rule will replace the @cata Fix@ obtained with the inlining
