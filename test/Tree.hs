@@ -84,7 +84,8 @@ treeFromListMapR f xs = foldr (\x y -> fix (NodeF (f x) y)) empty xs
 inspect $ 'treeFromListMap === 'treeFromListMapR
 
 treeFromListAlone, treeFromListAloneR :: [Tree a] -> Tree a
-treeFromListAlone  xs = buildR (\g -> foldr (\x -> g . NodeF (cata g x)) (g EmptyF) xs)
+treeFromListAlone  xs = buildR $ \fix' ->
+  foldr (\x -> fix' . NodeF (cata fix' x)) (fix' EmptyF) xs
 treeFromListAloneR xs = foldr node empty xs
 
 inspect $ 'treeFromListAlone === 'treeFromListAloneR

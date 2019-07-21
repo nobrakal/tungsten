@@ -67,11 +67,11 @@ foldr c n = cata go
 -- | The classical map.
 -- Good consumer and good producer.
 map :: (a -> b) -> List a -> List b
-map f xs = buildR $ \c ->
+map f xs = buildR $ \fix' ->
   let go x =
         case x of
-          NilF -> c NilF
-          ConsF a b -> c (ConsF (f a) b)
+          NilF -> fix' NilF
+          ConsF a b -> fix' $ ConsF (f a) b
   in cata go xs
 {-# INLINE map #-}
 
@@ -112,5 +112,5 @@ fromList xs =
 -- | Transform a Prelude list into a fixed-point one.
 -- Good producer (fixed-point lists) and good consumer of (of Prelude lists).
 toList :: [a] -> List a
-toList xs = buildR $ \c -> Prelude.foldr (\x ys -> c (ConsF x ys)) (c NilF) xs
+toList xs = buildR $ \fix' -> Prelude.foldr (\x -> fix' . ConsF x) (fix' NilF) xs
 {-# INLINE toList #-}

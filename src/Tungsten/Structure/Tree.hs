@@ -70,13 +70,13 @@ mapt f t = bind t (fix . LeafF . f)
 -- | @bind@ for trees, defined in terms of 'buildR' and 'cata'.
 -- Good consumer and good producer.
 bind :: Tree a -> (a -> Tree b) -> Tree b
-bind t f = buildR $ \u ->
+bind t f = buildR $ \fix' ->
   cata
   (\x ->
       case x of
-        EmptyF -> u EmptyF
-        LeafF a -> cata u (f a)
-        NodeF a b -> u $ NodeF a b)
+        EmptyF -> fix' EmptyF
+        LeafF a -> cata fix' $ f a
+        NodeF a b -> fix' $ NodeF a b)
   t
 {-# INLINE bind #-}
 
@@ -93,7 +93,8 @@ hasLeaf s = cata go
 -- | Construct a binary tree from a list.
 -- Good consumer (of Prelude lists) and good producer (of trees).
 treeFromList :: [Tree a] -> Tree a
-treeFromList xs = buildR $ \g -> foldr (\x -> g . NodeF (cata g x)) (g EmptyF) xs
+treeFromList xs = buildR $ \fix' ->
+  foldr (\x -> fix' . NodeF (cata fix' x)) (fix' EmptyF) xs
 {-# INLINE treeFromList #-}
 
 -- | @leftTree n@ construct a tree with n leaves from 1 to n.

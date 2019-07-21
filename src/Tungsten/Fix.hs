@@ -65,7 +65,7 @@ para t = p
 -- | Anamorphism.
 -- Defined in terms of 'buildR', so subject to fusion with 'cata'.
 ana :: Functor f => (a -> f a) -> a -> Fix f
-ana f b = buildR (\comb -> let c = comb . fmap c . f in c b)
+ana f b = buildR $ \fix' -> let c = fix' . fmap c . f in c b
 {-# INLINE ana #-}
 
 -- | Apomorphism.
