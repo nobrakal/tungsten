@@ -26,6 +26,8 @@ module Tungsten.Structure.Tree
   )
 where
 
+import Data.Functor.Classes
+
 import Tungsten.Fix
 
 -- | The "factored-out" recursive type for binary trees.
@@ -34,6 +36,22 @@ data TreeF a b =
   | LeafF a
   | NodeF b b
   deriving (Eq, Show, Functor)
+
+instance Show2 TreeF where
+  liftShowsPrec2 sa _ sb _ d x =
+    case x of
+      EmptyF -> showString "EmptyF"
+      LeafF a -> showParen (d > 10)
+        $ showString "LeafF "
+        . sa 11 a
+      NodeF a b -> showParen (d > 10)
+        $ showString "NodeF "
+        . sb 11 a
+        . showString " "
+        . sb 11 b
+
+instance Show a => Show1 (TreeF a) where
+  liftShowsPrec = liftShowsPrec2 showsPrec showList
 
 -- | Binary trees expressed as a fixed-point.
 type Tree a = Fix (TreeF a)
@@ -52,14 +70,6 @@ leaf = fix . LeafF
 node :: Tree a -> Tree a -> Tree a
 node = \a b -> fix (NodeF a b)
 {-# INLINE node #-}
-
--- | 'show' is a good consumer.
-instance Show a => Show (Tree a) where
-  show = cata go
-    where
-      go EmptyF = "empty"
-      go (LeafF a) = "leaf (" ++ show a ++ ")"
-      go (NodeF a b) = "node (" ++ a ++ ") (" ++ b ++ ")"
 
 -- | 'fmap' for trees.
 -- Good consumer and good producer.

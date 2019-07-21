@@ -32,9 +32,23 @@ module Tungsten.Fix
 where
 
 import Data.Coerce
+import Data.Functor.Classes
 
 -- | Operator to define fixed-point types.
 newtype Fix f = Fix (f (Fix f))
+
+-- | 'show' is a good consumer.
+instance (Functor f, Show1 f) => Show (Fix f) where
+  showsPrec d =
+    cata go
+    where
+      go :: Show1 f => f ShowS -> ShowS
+      go a =
+        showParen (d >= 11)
+        $ showString "Fix "
+        . liftShowsPrec
+          (\d' -> showParen (d' >= 11))
+          (foldr (.) id) 11 a
 
 -- | Remove one level of fixed-point.
 unfix :: Fix f -> f (Fix f)

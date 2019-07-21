@@ -26,6 +26,8 @@ module Tungsten.Structure.List
   )
 where
 
+import Data.Functor.Classes
+
 import Prelude hiding (foldr, map, elem, sum)
 import qualified Prelude as Prelude
 
@@ -38,15 +40,21 @@ data ListF a b =
   | ConsF a b
   deriving (Eq, Show, Functor)
 
+instance Show2 ListF where
+  liftShowsPrec2 sa _ sb _ d x =
+    case x of
+      NilF -> showString "NilF"
+      (ConsF a b) -> showParen (d > 10)
+        $ showString "ConsF "
+        . sa 11 a
+        . showString " "
+        . sb 11 b
+
+instance Show a => Show1 (ListF a) where
+  liftShowsPrec = liftShowsPrec2 showsPrec showList
+
 -- | Linked lists as a fixed-point.
 type List a = Fix (ListF a)
-
--- | 'show' is a good consumer.
-instance Show a => Show (List a) where
-  show = cata go
-    where
-      go NilF = "nil"
-      go (ConsF a b) = "cons ("++show a ++") ("++b++")"
 
 -- | The empty list. Similar to 'Prelude.[]' for Prelude lists.
 nil :: List a
