@@ -38,7 +38,24 @@ import GHC.Base (build)
 data ListF a b =
     NilF
   | ConsF a b
-  deriving (Eq, Show, Functor)
+  deriving (Eq, Ord, Show, Read, Functor)
+
+instance Eq2 ListF where
+  liftEq2 _ _ NilF        NilF          = True
+  liftEq2 f g (ConsF a b) (ConsF a' b') = f a a' && g b b'
+  liftEq2 _ _ _          _            = False
+
+instance Eq a => Eq1 (ListF a) where
+  liftEq = liftEq2 (==)
+
+instance Ord2 ListF where
+  liftCompare2 _ _ NilF        NilF          = EQ
+  liftCompare2 _ _ NilF        _             = LT
+  liftCompare2 _ _ _           NilF          = GT
+  liftCompare2 f g (ConsF a b) (ConsF a' b') = f a a' `mappend` g b b'
+
+instance Ord a => Ord1 (ListF a) where
+  liftCompare = liftCompare2 compare
 
 instance Show2 ListF where
   liftShowsPrec2 sa _ sb _ d x =
@@ -52,6 +69,21 @@ instance Show2 ListF where
 
 instance Show a => Show1 (ListF a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
+
+instance Read2 ListF where
+  liftReadsPrec2 ra _ rb _ d = readParen (d > 10) $ \s -> nilf s ++ consf s
+    where
+      nilf s0 = do
+        ("NilF", s1) <- lex s0
+        return (NilF, s1)
+      consf s0 = do
+        ("ConsF", s1) <- lex s0
+        (a,      s2) <- ra 11 s1
+        (b,      s3) <- rb 11 s2
+        return (ConsF a b, s3)
+
+instance Read a => Read1 (ListF a) where
+  liftReadsPrec = liftReadsPrec2 readsPrec readList
 
 -- | Linked lists as a fixed-point.
 type List a = Fix (ListF a)

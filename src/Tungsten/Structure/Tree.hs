@@ -35,7 +35,16 @@ data TreeF a b =
     EmptyF
   | LeafF a
   | NodeF b b
-  deriving (Eq, Show, Functor)
+  deriving (Eq, Ord, Show, Read, Functor)
+
+instance Eq2 TreeF where
+  liftEq2 _ _ EmptyF      EmptyF        = True
+  liftEq2 f _ (LeafF a)   (LeafF a')    = f a a'
+  liftEq2 _ g (NodeF a b) (NodeF a' b') = g a a' && g b b'
+  liftEq2 _ _ _           _             = False
+
+instance Eq a => Eq1 (TreeF a) where
+  liftEq = liftEq2 (==)
 
 instance Show2 TreeF where
   liftShowsPrec2 sa _ sb _ d x =
@@ -52,6 +61,25 @@ instance Show2 TreeF where
 
 instance Show a => Show1 (TreeF a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
+
+instance Read2 TreeF where
+  liftReadsPrec2 ra _ rb _ d = readParen (d > 10) $ \s -> nilf s ++ leaff s ++ nodef s
+    where
+      nilf s0 = do
+        ("EmptyF", s1) <- lex s0
+        return (EmptyF, s1)
+      leaff s0 = do
+        ("LeafF", s1) <- lex s0
+        (a,       s2) <- ra 11 s1
+        return (LeafF a, s2)
+      nodef s0 = do
+        ("NodeF", s1) <- lex s0
+        (a,       s2) <- rb 11 s1
+        (b,       s3) <- rb 11 s2
+        return (NodeF a b, s3)
+
+instance Read a => Read1 (TreeF a) where
+  liftReadsPrec = liftReadsPrec2 readsPrec readList
 
 -- | Binary trees expressed as a fixed-point.
 type Tree a = Fix (TreeF a)
