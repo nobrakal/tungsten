@@ -17,6 +17,9 @@
 -- To use efficiently this module, compile with rewrite rules enabled and
 -- the @-fspec-constr@ flag.
 --
+-- A part of this module was inspired by the "Data.Functor.Foldable" module from the
+-- <http://hackage.haskell.org/package/recursion-schemes-5.1.3 recursion-schemes package>.
+--
 -----------------------------------------------------------------------------
 module Tungsten.Fix
   ( -- * The fixed-point operator
