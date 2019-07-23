@@ -8,7 +8,8 @@
 --
 -- This module provides the 'Fix' operator which can be used to define
 -- fixed-point structures
--- (see examples in "Tungsten.Structure.List" or "Tungsten.Structure.Tree").
+-- (see examples in "Tungsten.Structure.List", "Tungsten.Structure.Tree" ord
+-- "Tungsten.Structure.Graph").
 --
 -- Defining a type in term of 'Fix' gives access to 'cata' and 'buildR'
 -- and the \"cata/buildR\" rewrite rule (see comment for 'buildR' for how to

@@ -11,6 +11,7 @@ Some examples of use can be seen in:
 
 * [`Tungsten.Structure.List`](src/Tungsten/Structure/List.hs)
 * [`Tungsten.Structure.Tree`](src/Tungsten/Structure/Tree.hs)
+* [`Tungsten.Structure.Graph`](src/Tungsten/Structure/Graph.hs)
 
 ## Is this valid?
 
