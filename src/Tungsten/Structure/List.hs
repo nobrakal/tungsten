@@ -70,21 +70,6 @@ instance Show2 ListF where
 instance Show a => Show1 (ListF a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
 
-instance Read2 ListF where
-  liftReadsPrec2 ra _ rb _ d = readParen (d > 10) $ \s -> nilf s ++ consf s
-    where
-      nilf s0 = do
-        ("NilF", s1) <- lex s0
-        return (NilF, s1)
-      consf s0 = do
-        ("ConsF", s1) <- lex s0
-        (a,      s2) <- ra 11 s1
-        (b,      s3) <- rb 11 s2
-        return (ConsF a b, s3)
-
-instance Read a => Read1 (ListF a) where
-  liftReadsPrec = liftReadsPrec2 readsPrec readList
-
 -- | Linked lists as a fixed-point.
 type List a = Fix (ListF a)
 

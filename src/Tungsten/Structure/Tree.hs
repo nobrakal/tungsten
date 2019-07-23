@@ -62,25 +62,6 @@ instance Show2 TreeF where
 instance Show a => Show1 (TreeF a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
 
-instance Read2 TreeF where
-  liftReadsPrec2 ra _ rb _ d = readParen (d > 10) $ \s -> nilf s ++ leaff s ++ nodef s
-    where
-      nilf s0 = do
-        ("EmptyF", s1) <- lex s0
-        return (EmptyF, s1)
-      leaff s0 = do
-        ("LeafF", s1) <- lex s0
-        (a,       s2) <- ra 11 s1
-        return (LeafF a, s2)
-      nodef s0 = do
-        ("NodeF", s1) <- lex s0
-        (a,       s2) <- rb 11 s1
-        (b,       s3) <- rb 11 s2
-        return (NodeF a b, s3)
-
-instance Read a => Read1 (TreeF a) where
-  liftReadsPrec = liftReadsPrec2 readsPrec readList
-
 -- | Binary trees expressed as a fixed-point.
 type Tree a = Fix (TreeF a)
 
