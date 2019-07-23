@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a2746a3d19e691c74144675577ed77e9487870e79b10afe7a0b5c6f319141886
+-- hash: 72fc4bf5e4ae901e255138cf8494992de49fe2a7c254ffc3b580f61c9a52a552
 
 name:           tungsten
 version:        0.1.0.0
@@ -30,6 +30,7 @@ source-repository head
 library
   exposed-modules:
       Tungsten.Fix
+      Tungsten.Structure.Graph
       Tungsten.Structure.List
       Tungsten.Structure.Tree
   other-modules:

@@ -105,7 +105,7 @@ mapt :: (a -> b) -> Tree a -> Tree b
 mapt f t = bind t (fix . LeafF . f)
 {-# INLINE mapt #-}
 
--- | @bind@ for trees, defined in terms of 'buildR' and 'cata'.
+-- | @bind@ for trees.
 -- Good consumer and good producer.
 bind :: Tree a -> (a -> Tree b) -> Tree b
 bind t f = buildR $ \fix' ->
