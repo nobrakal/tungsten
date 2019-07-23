@@ -21,6 +21,9 @@ module Tungsten.Structure.Graph
 
   -- * Classical operations on graphs
   , foldg, mapg, bind
+
+  -- * Operations on graphs
+  , hasVertex, edges
   )
 where
 
@@ -89,7 +92,7 @@ connect :: Graph a -> Graph a -> Graph a
 connect = \a b -> fix (ConnectF a b)
 {-# INLINE connect #-}
 
--- | Fold a graph.
+-- | Fold a graph. Good consumer.
 foldg :: b -- ^ Empty case
       -> (a -> b) -- ^ Vertex case
       -> (b -> b -> b) -- ^ Overlay case
@@ -123,3 +126,22 @@ bind t f = buildR $ \fix' ->
         ConnectF a b -> fix' $ ConnectF a b)
   t
 {-# INLINE bind #-}
+
+-- | Test if a vertex is in a graph.
+-- Good consumer.
+hasVertex :: Eq a => a -> Graph a -> Bool
+hasVertex v = cata go
+  where
+    go EmptyF = False
+    go (VertexF x) = v == x
+    go (OverlayF a b) = a || b
+    go (ConnectF a b) = a || b
+{-# INLINE hasVertex #-}
+
+-- | Construct a graph from a list of edges
+-- Good consumer of lists and producer of graphs.
+edges :: [(a,a)] -> Graph a
+edges xs = buildR $ \fix' ->
+  let edge' (u,v) = (fix' $ ConnectF (fix' (VertexF u)) (fix' (VertexF v)))
+  in foldr (\e -> fix' . OverlayF (edge' e)) (fix' EmptyF) xs
+{-# INLINE edges #-}
