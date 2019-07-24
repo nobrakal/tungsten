@@ -39,16 +39,6 @@ data GraphF a b =
   | ConnectF b b
   deriving (Eq, Ord, Show, Read, Functor)
 
-instance Eq2 GraphF where
-  liftEq2 _ _ EmptyF         EmptyF           = True
-  liftEq2 f _ (VertexF a)    (VertexF a')     = f a a'
-  liftEq2 _ g (OverlayF a b) (OverlayF a' b') = g a a' && g b b'
-  liftEq2 _ g (ConnectF a b) (ConnectF a' b') = g a a' && g b b'
-  liftEq2 _ _ _           _                   = False
-
-instance Eq a => Eq1 (GraphF a) where
-  liftEq = liftEq2 (==)
-
 instance Show2 GraphF where
   liftShowsPrec2 sa _ sb _ d x =
     case x of
