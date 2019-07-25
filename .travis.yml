@@ -38,12 +38,13 @@ install:
 script:
 # Build the package, its tests, and its docs and run the tests
 - stack --no-terminal test --haddock --no-haddock-deps
+- export DOCROOT=$(stack path --local-doc-root)
 
 deploy:
   provider: pages
   skip_cleanup: true
   github_token: $GH_TOKEN  # Set in the settings page of your repository, as a secure variable
   keep_history: true
-  local_dir: $(stack path --local-doc-root)
+  local_dir: $DOCROOT
   on:
     branch: master
