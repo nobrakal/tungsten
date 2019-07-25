@@ -37,7 +37,7 @@ install:
 
 script:
 # Build the package, its tests, and its docs and run the tests
-- stack --no-terminal test --haddock --coverage --no-haddock-deps
+- stack --no-terminal test --haddock --no-haddock-deps
 
 after_success:
 # Copy haddocks to a separate directory.
