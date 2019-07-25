@@ -39,22 +39,11 @@ script:
 # Build the package, its tests, and its docs and run the tests
 - stack --no-terminal test --haddock --no-haddock-deps
 
-after_success:
-# Copy haddocks to a separate directory.
-- mkdir -p ../gh-pages
-- cp -R "$(stack path --local-doc-root)" ../gh-pages
-- cp -R "$(stack path --local-hpc-root)" ../gh-pages
-- cd ../gh-pages
-
-# Set identity.
-- git config --global user.email "travis@travis-ci.org"
-- git config --global user.name "Travis"
-
-# Add branch.
-- git init
-- git remote add origin https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git > /dev/null
-- git checkout -B gh-pages
-
-# Push generated files.
-- git add .
-- git commit -m "Haddocks updated" git push origin gh-pages -fq > /dev/null
+deploy:
+  provider: pages
+  skip_cleanup: true
+  github_token: $GH_TOKEN  # Set in the settings page of your repository, as a secure variable
+  keep_history: true
+  local_dir: $(stack path --local-doc-root)
+  on:
+    branch: master
