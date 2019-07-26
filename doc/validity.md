@@ -20,7 +20,7 @@ The rule states that:
 cata go (buildR g) = g go
 ```
 
-The next theorem proves this equality, using the rank-2-types required in `Cata`'s type, but as we show in next section, it is totally valid only without the presence of `seq` and `⊥` (or `undefined`).
+The next theorem proves this equality, using the rank-2-types required in `Cata`'s type. As we show in the next section, it is totally valid only without the presence of `seq` and `⊥` (or `undefined`).
 
 ## The theorem
 
