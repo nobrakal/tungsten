@@ -14,14 +14,17 @@
 --
 -----------------------------------------------------------------------------
 module Tungsten.Structure.List
-  ( -- * Lists as fixed-point
+  ( -- * Lists as fixed-points
     ListF (..), List
   , nil, cons
 
-  -- * Classical operations
-  , foldr, map, elem, range
+  -- * Classical operations on lists
+  , foldr, map
 
-  -- * Conversion
+  -- * Operations on lists
+  , elem, range
+
+  -- * Conversions
   , toList, fromList
   )
 where

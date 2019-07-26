@@ -14,7 +14,7 @@
 --
 -----------------------------------------------------------------------------
 module Tungsten.Structure.Tree
-  ( -- * Binary trees as fixed-point
+  ( -- * Binary trees as fixed-points
     TreeF (..), Tree
   , empty, leaf, node
 
@@ -22,7 +22,10 @@ module Tungsten.Structure.Tree
   , mapt, bind
 
   -- * Operations on trees
-  , hasLeaf, treeFromList, leftTreeN
+  , hasLeaf
+
+  -- * Conversions
+  , treeFromList, leftTreeN
   )
 where
 

@@ -15,7 +15,7 @@
 --
 -----------------------------------------------------------------------------
 module Tungsten.Structure.Graph
-  ( -- * Algebraic graphs as fixed-point
+  ( -- * Algebraic graphs as fixed-points
     GraphF (..), Graph
   , empty, vertex, overlay, connect
 
@@ -23,7 +23,10 @@ module Tungsten.Structure.Graph
   , foldg, mapg, bind
 
   -- * Operations on graphs
-  , hasVertex, edges
+  , hasVertex
+
+  -- * Conversions
+  , edges
   )
 where
 

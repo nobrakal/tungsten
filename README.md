@@ -1,15 +1,13 @@
 # Tungsten
 [![Build Status](https://travis-ci.com/nobrakal/tungsten.svg?branch=master)](https://travis-ci.com/nobrakal/tungsten)
 
-## Purpose
-
 `tungsten` is a (highly experimental) library bringing [deforestation](https://en.wikipedia.org/wiki/Deforestation_(computer_science)) to any recursive structure _for free_.
 
 The only prerequisite is to define the concerned structure as a [fixed-point](https://en.wikipedia.org/wiki/Fixed_point_(mathematics)) using the provided `Fix` operator from the [`Tungsten.Fix`](src/Tungsten/Fix.hs) module. It also defines a generalization of the `foldr/build` rewrite rule, targeting _catamorphisms_ on any fixed-point structures.
 
-Documentation is available here: https://nobrakal.github.io/tungsten/
+Haddock-generated documentation is available at https://nobrakal.github.io/tungsten/
 
-### Examples
+## Examples
 
 Some examples of use can be seen in:
 
