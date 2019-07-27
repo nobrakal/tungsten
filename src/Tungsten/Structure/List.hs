@@ -1,4 +1,5 @@
-{-# LANGUAGE FlexibleInstances, DeriveFunctor #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleInstances, DeriveFunctor, OverloadedLists #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module     : Tungsten.Structure.List
@@ -36,6 +37,7 @@ import qualified Prelude as Prelude
 
 import Tungsten.Fix
 import GHC.Base (build)
+import qualified GHC.Exts as Ext
 
 -- | The factored-out recursive type for lists.
 data ListF a b =
@@ -75,6 +77,11 @@ instance Show a => Show1 (ListF a) where
 
 -- | Linked lists as a fixed-point.
 type List a = Fix (ListF a)
+
+instance Ext.IsList (List a) where
+  type (Item (List a)) = a
+  fromList = fromList
+  toList = toList
 
 -- | The empty list. Similar to 'Prelude.[]' for Prelude lists.
 nil :: List a
@@ -126,8 +133,8 @@ range start end = ana go start
 
 -- | Transform a fixed-point list into a Prelude one.
 -- Good producer (of Prelude lists) and good consumer (of fixed-point lists).
-fromList :: List a -> [a]
-fromList xs =
+toList :: List a -> [a]
+toList xs =
   build
   (\c n ->
      let go ys =
@@ -135,10 +142,10 @@ fromList xs =
              NilF -> n
              ConsF a b -> c a b
      in cata go xs)
-{-# INLINE fromList #-}
+{-# INLINE toList #-}
 
 -- | Transform a Prelude list into a fixed-point one.
 -- Good producer (fixed-point lists) and good consumer of (of Prelude lists).
-toList :: [a] -> List a
-toList xs = buildR $ \fix' -> Prelude.foldr (\x -> fix' . ConsF x) (fix' NilF) xs
-{-# INLINE toList #-}
+fromList :: [a] -> List a
+fromList xs = buildR $ \fix' -> Prelude.foldr (\x -> fix' . ConsF x) (fix' NilF) xs
+{-# INLINE fromList #-}

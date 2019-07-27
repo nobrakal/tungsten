@@ -14,13 +14,13 @@ foldrMapR c n f xs = foldr (c . f) n xs
 
 inspect $ 'foldrMap === 'foldrMapR
 
-fromTo, fromToR :: [a] -> [a]
+fromTo, fromToR :: List a -> List a
 fromTo  xs = fromList (toList xs)
 fromToR xs = xs
 
 inspect $ 'fromTo === 'fromToR
 
-toFrom, toFromR :: List a -> List a
+toFrom, toFromR :: [a] -> [a]
 toFrom  xs = toList (fromList xs)
 toFromR xs = xs
 
