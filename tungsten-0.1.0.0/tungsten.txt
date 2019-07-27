@@ -132,6 +132,9 @@ mapg :: (a -> b) -> Graph a -> Graph b
 -- | <tt>bind</tt> for algebraic graphs. Good consumer and good producer.
 bind :: Graph a -> (a -> Graph b) -> Graph b
 
+-- | Transpose a graph. Good consumer and good producer.
+transpose :: Graph a -> Graph a
+
 -- | Test if a vertex is in a graph. Good consumer.
 hasVertex :: Eq a => a -> Graph a -> Bool
 
