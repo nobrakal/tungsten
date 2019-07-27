@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 72fc4bf5e4ae901e255138cf8494992de49fe2a7c254ffc3b580f61c9a52a552
+-- hash: 1566dae5e876f1e81256cbb1c2b04b3519c7e22a1a8e560c9325a4746b59ba58
 
 name:           tungsten
 version:        0.1.0.0
@@ -47,6 +47,7 @@ test-suite tungsten-test
   main-is: Main.hs
   other-modules:
       Fix
+      Graph
       List
       Tree
       Paths_tungsten

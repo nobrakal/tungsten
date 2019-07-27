@@ -23,7 +23,7 @@ module Tungsten.Structure.Graph
   , foldg, mapg, bind
 
   -- * Operations on graphs
-  , hasVertex
+  , transpose, hasVertex
 
   -- * Conversions
   , edges
@@ -109,16 +109,26 @@ mapg f g = bind g (vertex . f)
 -- | @bind@ for algebraic graphs.
 -- Good consumer and good producer.
 bind :: Graph a -> (a -> Graph b) -> Graph b
-bind t f = buildR $ \fix' ->
-  cata
-  (\x ->
-      case x of
-        EmptyF -> fix' EmptyF
-        VertexF a -> cata fix' $ f a
-        OverlayF a b -> fix' $ OverlayF a b
-        ConnectF a b -> fix' $ ConnectF a b)
-  t
+bind g f = buildR $ \fix' ->
+  let go x =
+        case x of
+          EmptyF -> fix' EmptyF
+          VertexF a -> cata fix' $ f a
+          OverlayF a b -> fix' $ OverlayF a b
+          ConnectF a b -> fix' $ ConnectF a b
+  in cata go g
 {-# INLINE bind #-}
+
+-- | Transpose a graph.
+-- Good consumer and good producer.
+transpose :: Graph a -> Graph a
+transpose g = buildR $ \fix' ->
+  let go x =
+        case x of
+          ConnectF a b -> fix' $ ConnectF b a
+          _            -> fix' x
+  in cata go g
+{-# INLINE transpose #-}
 
 -- | Test if a vertex is in a graph.
 -- Good consumer.
