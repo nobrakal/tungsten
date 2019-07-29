@@ -138,6 +138,10 @@ transpose :: Graph a -> Graph a
 -- | Test if a vertex is in a graph. Good consumer.
 hasVertex :: Eq a => a -> Graph a -> Bool
 
+-- | Construct the graph comprising a given list of isolated vertices. Good
+--   consumer of lists and producer of graphs.
+vertices :: [a] -> Graph a
+
 -- | Construct a graph from a list of edges Good consumer of lists and
 --   producer of graphs.
 edges :: [(a, a)] -> Graph a
