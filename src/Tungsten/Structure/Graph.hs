@@ -26,7 +26,7 @@ module Tungsten.Structure.Graph
   , transpose, hasVertex
 
   -- * Conversions
-  , edges
+  , vertices, edges
   )
 where
 
@@ -140,6 +140,13 @@ hasVertex v = cata go
     go (OverlayF a b) = a || b
     go (ConnectF a b) = a || b
 {-# INLINE hasVertex #-}
+
+-- | Construct the graph comprising a given list of isolated vertices.
+-- Good consumer of lists and producer of graphs.
+vertices :: [a] -> Graph a
+vertices xs = buildR $ \fix' ->
+  foldr (\x -> fix' . OverlayF (fix' (VertexF x))) (fix' EmptyF) xs
+{-# INLINE vertices #-}
 
 -- | Construct a graph from a list of edges
 -- Good consumer of lists and producer of graphs.

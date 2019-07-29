@@ -12,3 +12,9 @@ transposeSwap  xs = transpose (edges xs)
 transposeSwapR xs = edges (map swap xs)
 
 inspect $ 'transposeSwap === 'transposeSwapR
+
+hasVertexVertices, hasVertexVerticesR :: Eq a => a -> [a] -> Bool
+hasVertexVertices  x xs = hasVertex x (vertices xs)
+hasVertexVerticesR x xs = foldr (\y b -> x == y || b) False xs
+
+inspect $ 'hasVertexVertices === 'hasVertexVerticesR
