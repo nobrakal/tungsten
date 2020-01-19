@@ -1,5 +1,5 @@
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE FlexibleInstances, DeriveFunctor, OverloadedLists #-}
+{-# LANGUAGE FlexibleInstances, DeriveFunctor, OverloadedLists, RankNTypes #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module     : Tungsten.Structure.List
@@ -77,11 +77,12 @@ instance Show a => Show1 (ListF a) where
 
 -- | Linked lists as a fixed-point.
 type List a = Fix (ListF a)
+type SoftList a = Soft (ListF a)
 
 instance Ext.IsList (List a) where
   type (Item (List a)) = a
-  fromList = fromList
-  toList = toList
+  fromList xs = harden (fromList xs)
+  toList xs = toList (soften xs)
 
 -- | The empty list. Similar to 'Prelude.[]' for Prelude lists.
 nil :: List a
@@ -92,7 +93,7 @@ cons :: a -> List a -> List a
 cons x xs = fix (ConsF x xs)
 
 -- | The classical right fold. Good consumer.
-foldr :: (a -> b -> b) -> b -> List a -> b
+foldr :: (a -> b -> b) -> b -> SoftList a -> b
 foldr c n = cata go
   where
     go NilF = n
@@ -101,8 +102,8 @@ foldr c n = cata go
 
 -- | The classical map.
 -- Good consumer and good producer.
-map :: (a -> b) -> List a -> List b
-map f xs = buildR $ \fix' ->
+map :: (a -> b) -> SoftList a -> SoftList b
+map f xs = \fix' ->
   let go x =
         case x of
           NilF -> fix' NilF
@@ -112,7 +113,7 @@ map f xs = buildR $ \fix' ->
 
 -- | Search an element in a list.
 -- Good consumer.
-elem :: Eq a => a -> List a -> Bool
+elem :: Eq a => a -> SoftList a -> Bool
 elem e = cata go
   where
     go NilF = False
@@ -122,7 +123,7 @@ elem e = cata go
 -- | @range start end@ will produce a list containing int
 -- in ascending order from @start@ (inclusive) to @end@ (exclusive).
 -- Good producer.
-range :: Int -> Int -> List Int
+range :: Int -> Int -> SoftList Int
 range start end = ana go start
   where
     go n =
@@ -133,19 +134,17 @@ range start end = ana go start
 
 -- | Transform a fixed-point list into a Prelude one.
 -- Good producer (of Prelude lists) and good consumer (of fixed-point lists).
-toList :: List a -> [a]
-toList xs =
-  build
-  (\c n ->
+toList :: SoftList a -> [a]
+toList xs = build $ \c n ->
      let go ys =
            case ys of
              NilF -> n
              ConsF a b -> c a b
-     in cata go xs)
+     in cata go xs
 {-# INLINE toList #-}
 
 -- | Transform a Prelude list into a fixed-point one.
 -- Good producer (fixed-point lists) and good consumer of (of Prelude lists).
-fromList :: [a] -> List a
-fromList xs = buildR $ \fix' -> Prelude.foldr (\x -> fix' . ConsF x) (fix' NilF) xs
+fromList :: [a] -> SoftList a
+fromList xs = \fix' -> Prelude.foldr (\x -> fix' . ConsF x) (fix' NilF) xs
 {-# INLINE fromList #-}

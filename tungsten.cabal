@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1566dae5e876f1e81256cbb1c2b04b3519c7e22a1a8e560c9325a4746b59ba58
+-- hash: a2746a3d19e691c74144675577ed77e9487870e79b10afe7a0b5c6f319141886
 
 name:           tungsten
 version:        0.1.0.0
@@ -30,7 +30,6 @@ source-repository head
 library
   exposed-modules:
       Tungsten.Fix
-      Tungsten.Structure.Graph
       Tungsten.Structure.List
       Tungsten.Structure.Tree
   other-modules:
@@ -47,7 +46,6 @@ test-suite tungsten-test
   main-is: Main.hs
   other-modules:
       Fix
-      Graph
       List
       Tree
       Paths_tungsten

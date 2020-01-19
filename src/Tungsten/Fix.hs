@@ -8,12 +8,9 @@
 --
 -- This module provides the 'Fix' operator which can be used to define
 -- fixed-point structures
--- (see examples in "Tungsten.Structure.List", "Tungsten.Structure.Tree" ord
--- "Tungsten.Structure.Graph").
+-- (see examples in "Tungsten.Structure.List" or "Tungsten.Structure.Tree").
 --
--- Defining a type in term of 'Fix' gives access to 'cata' and 'buildR'
--- and the \"cata/buildR\" rewrite rule (see comment for 'buildR' for how to
--- use it).
+-- TODO
 --
 -- To use efficiently this module, compile with rewrite rules enabled and
 -- the @-fspec-constr@ flag.
@@ -31,7 +28,7 @@ module Tungsten.Fix
   , cata, para, ana, apo, hylo
 
     -- * Tools for rewriting
-  , Cata, buildR
+  , Soft, harden, soften
   )
 where
 
@@ -52,7 +49,7 @@ instance Ord1 f => Ord (Fix f) where
 
 -- | 'show' is a good consumer.
 instance (Functor f, Show1 f) => Show (Fix f) where
-  showsPrec d = cata go
+  showsPrec d x = cata go (soften x)
     where
       go a =
         showParen (d >= 11)
@@ -76,30 +73,32 @@ fix :: f (Fix f) -> Fix f
 fix = Fix
 {-# INLINE fix #-}
 
--- | Catamorphism.
--- Functions defined in terms of 'cata' (or \"good consumers\") are subject
--- to fusion with functions exprimed in terms of 'buildR' (or \"good producers\").
-cata :: Functor f => (f a -> a) -> Fix f -> a
-cata f = c
+fold :: Functor f => (f a -> a) -> Fix f -> a
+fold f = c
   where
     c = f . fmap c . unfix
-{-# INLINE [0] cata #-}
+{-# INLINE [0] fold #-}
+
+-- | Type of arguments of 'cata'.
+type Soft f = forall a. (f a -> a) -> a
+
+-- | Catamorphism.
+cata :: Functor f => (f a -> a) -> Soft f -> a
+cata f x = x f
+{-# INLINE cata #-}
 
 -- | Paramorphism.
--- Functions defined in terms of 'para' are /not/ subject to fusion.
 para :: Functor f => (f (Fix f, a) -> a) -> Fix f -> a
 para t = p
   where
     p = t . fmap ((,) <*> p) . unfix
 
 -- | Anamorphism.
--- Defined in terms of 'buildR', so subject to fusion with 'cata'.
-ana :: Functor f => (a -> f a) -> a -> Fix f
-ana f b = buildR $ \fix' -> let c = fix' . fmap c . f in c b
+ana :: Functor f => (a -> f a) -> a -> Soft f
+ana f b = \fix' -> let c = fix' . fmap c . f in c b
 {-# INLINE ana #-}
 
 -- | Apomorphism.
--- Functions defined in terms of 'apo' are /not/ subject to fusion.
 apo :: Functor f => (a -> f (Either (Fix f) a)) -> a -> Fix f
 apo g = a where a = fix . (fmap (either id a)) . g
 
@@ -111,41 +110,20 @@ apo g = a where a = fix . (fmap (either id a)) . g
 hylo :: Functor f => (f b -> b) -> (a -> f a) -> a -> b
 hylo f g x = cata f (ana g x)
 
--- | Type of arguments of 'buildR'.
-type Cata f = forall a. (f a -> a) -> a
+-- | 'harden' a structure. Can be used at _no costs_ when postcomposing with
+-- a function producing a 'Soft' result.
+harden :: Soft f -> Fix f
+harden g = g Fix
+{-# INLINE harden #-}
 
--- | 'buildR' abstracts the build of a structure with respect to the fixed-point
--- combinator, such that we have the following rewrite rule (named \"cata/buildR\"):
---
--- @
--- cata f (buildR g) = g f
--- @
---
--- When firing, this remove the build of an intermediate structure.
--- A function expressed with 'buildR' is called a /good producer/.
---
--- Note 1. Without rewriting, 'buildR' is just:
---
--- @
--- buildR g = g Fix
--- @
---
--- Note 2. The validity of the \"cata/buildR\" rule is guaranteed by [free theorems
--- of Wadler](https://doi.org/10.1145/99370.99404). They are known to fail in
--- presence of 'seq' and 'undefined', be careful.
---
--- Note 3. If @g = cata@ and a rewriting did not happen,
--- then the \"cata/id\" rule will replace the @cata Fix@ obtained with the inlining
--- of 'buildR' by 'id'.
-buildR :: Cata f -> Fix f
-buildR g = g Fix
-{-# INLINE [1] buildR #-}
+-- | 'soften' a structure. Can be used at _no costs_ when precomposing with
+-- a function taking a 'Soft' argument.
+soften :: Functor f => Fix f -> Soft f
+soften g = \f -> fold f g
+{-# INLINE soften #-}
 
 {-# RULES
-"cata/buildR" [~1] forall (f :: t b -> b) (g :: Cata t).
-  cata f (buildR g) = g f
-
 -- We cannot target `Fix` since it will be optimized away
 "cata/id"
-  cata coerce = id
+  fold coerce = id
  #-}

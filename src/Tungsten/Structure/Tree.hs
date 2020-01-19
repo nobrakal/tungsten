@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, DeriveFunctor #-}
+{-# LANGUAGE FlexibleInstances, DeriveFunctor, RankNTypes #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module     : Tungsten.Structure.Tree
@@ -67,6 +67,7 @@ instance Show a => Show1 (TreeF a) where
 
 -- | Binary trees expressed as a fixed-point.
 type Tree a = Fix (TreeF a)
+type SoftTree a = Soft (TreeF a)
 
 -- | The empty tree.
 empty :: Tree a
@@ -85,26 +86,26 @@ node = \a b -> fix (NodeF a b)
 
 -- | 'fmap' for trees.
 -- Good consumer and good producer.
-mapt :: (a -> b) -> Tree a -> Tree b
+mapt :: (a -> b) -> SoftTree a -> SoftTree b
 mapt f t = bind t (fix . LeafF . f)
 {-# INLINE mapt #-}
 
 -- | @bind@ for trees.
 -- Good consumer and good producer.
-bind :: Tree a -> (a -> Tree b) -> Tree b
-bind t f = buildR $ \fix' ->
+bind :: SoftTree a -> (a -> Tree b) -> SoftTree b
+bind t f = \fix' ->
   cata
   (\x ->
       case x of
         EmptyF -> fix' EmptyF
-        LeafF a -> cata fix' $ f a
+        LeafF a -> cata fix' $ soften $ f a
         NodeF a b -> fix' $ NodeF a b)
   t
 {-# INLINE bind #-}
 
 -- | @hasLeaf s t@ tests if the leaf @s@ is present in the tree @t@.
 -- Good consumer.
-hasLeaf :: Eq a => a -> Tree a -> Bool
+hasLeaf :: Eq a => a -> SoftTree a -> Bool
 hasLeaf s = cata go
   where
     go EmptyF = False
@@ -114,14 +115,14 @@ hasLeaf s = cata go
 
 -- | Construct a binary tree from a list.
 -- Good consumer (of Prelude lists) and good producer (of trees).
-treeFromList :: [Tree a] -> Tree a
-treeFromList xs = buildR $ \fix' ->
-  foldr (\x -> fix' . NodeF (cata fix' x)) (fix' EmptyF) xs
+treeFromList :: [Tree a] -> SoftTree a
+treeFromList xs = \fix' ->
+  foldr (\x -> fix' . NodeF (cata fix' (soften x))) (fix' EmptyF) xs
 {-# INLINE treeFromList #-}
 
 -- | @leftTree n@ construct a tree with n leaves from 1 to n.
 -- Good producer.
-leftTreeN :: Int -> Tree Int
+leftTreeN :: Int -> SoftTree Int
 leftTreeN n = ana go (Right 1)
   where
     go (Left n') = LeafF n'
