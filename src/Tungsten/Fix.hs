@@ -51,9 +51,8 @@ instance Eq1 f => Eq (Fix f) where
 instance Ord1 f => Ord (Fix f) where
   compare = compare1 `on` unfix
 
--- | 'show' is a good consumer.
 instance (Functor f, Show1 f) => Show (Fix f) where
-  showsPrec d x = cata go (soften x)
+  showsPrec d x = fold go x
     where
       go a =
         showParen (d >= 11)

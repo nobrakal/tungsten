@@ -89,18 +89,18 @@ node = \a b -> fix (NodeF a b)
 -- | 'fmap' for trees.
 -- Good consumer and good producer.
 mapt :: (a -> b) -> SoftTree a -> SoftTree b
-mapt f t = bind t (fix . LeafF . f)
+mapt f t = bind t (\x fix' -> fix' $ LeafF $ f x)
 {-# INLINE mapt #-}
 
 -- | @bind@ for trees.
 -- Good consumer and good producer.
-bind :: SoftTree a -> (a -> Tree b) -> SoftTree b
+bind :: SoftTree a -> (a -> SoftTree b) -> SoftTree b
 bind t f = \fix' ->
   cata
   (\x ->
       case x of
         EmptyF -> fix' EmptyF
-        LeafF a -> cata fix' $ soften $ f a
+        LeafF a -> cata fix' $ f a
         NodeF a b -> fix' $ NodeF a b)
   t
 {-# INLINE bind #-}
