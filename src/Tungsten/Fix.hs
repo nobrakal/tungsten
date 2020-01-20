@@ -83,6 +83,18 @@ fold f = c
     c = f . fmap c . unfix
 {-# INLINE [0] fold #-}
 
+-- | Paramorphism.
+para :: Functor f => (f (Fix f, a) -> a) -> Fix f -> a
+para t = p
+  where
+    p = t . fmap ((,) <*> p) . unfix
+
+-- | Apomorphism.
+apo :: Functor f => (a -> f (Either (Fix f) a)) -> a -> Fix f
+apo g = a
+  where
+    a = fix . (fmap (either id a)) . g
+
 -- | Type to represent "soft" structure. Composing two functions working
 -- with soft values guarantees that no intermediate structure will be built.
 type Soft f = forall a. (f a -> a) -> a
@@ -92,20 +104,10 @@ cata :: Functor f => (f a -> a) -> Soft f -> a
 cata f x = x f
 {-# INLINE cata #-}
 
--- | Paramorphism.
-para :: Functor f => (f (Fix f, a) -> a) -> Fix f -> a
-para t = p
-  where
-    p = t . fmap ((,) <*> p) . unfix
-
 -- | Anamorphism.
 ana :: Functor f => (a -> f a) -> a -> Soft f
 ana f b = \fix' -> let c = fix' . fmap c . f in c b
 {-# INLINE ana #-}
-
--- | Apomorphism.
-apo :: Functor f => (a -> f (Either (Fix f) a)) -> a -> Fix f
-apo g = a where a = fix . (fmap (either id a)) . g
 
 -- | Hylomorphism.
 --
