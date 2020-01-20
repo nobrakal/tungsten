@@ -10,7 +10,8 @@
 -- fixed-point structures
 -- (see examples in "Tungsten.Structure.List" or "Tungsten.Structure.Tree").
 --
--- TODO
+-- This modules also offers functions to work on 'Soft' structures. Using these functions
+-- allow to prevent the build of intermediate structures when composing them.
 --
 -- To use efficiently this module, compile with rewrite rules enabled and
 -- the @-fspec-constr@ flag.
@@ -23,6 +24,8 @@ module Tungsten.Fix
   ( -- * The fixed-point operator
     Fix (..)
   , fix, unfix
+
+  , fold
 
     -- * Recursion-schemes
   , cata, para, ana, apo, hylo
@@ -63,7 +66,7 @@ instance Read1 f => Read (Fix f) where
     Ident "Fix" <- lexP
     Fix <$> step (readS_to_Prec readsPrec1)
 
--- | Remove one level of fixed-point.
+-- | Remove one level of a fixed-point.
 unfix :: Fix f -> f (Fix f)
 unfix (Fix f) = f
 {-# INLINE unfix #-}
@@ -73,13 +76,15 @@ fix :: f (Fix f) -> Fix f
 fix = Fix
 {-# INLINE fix #-}
 
+-- | The "hard" fold of a fixed-point structure.
 fold :: Functor f => (f a -> a) -> Fix f -> a
 fold f = c
   where
     c = f . fmap c . unfix
 {-# INLINE [0] fold #-}
 
--- | Type of arguments of 'cata'.
+-- | Type to represent "soft" structure. Composing two functions working
+-- with soft values guarantee that no intermediate structure will be built.
 type Soft f = forall a. (f a -> a) -> a
 
 -- | Catamorphism.

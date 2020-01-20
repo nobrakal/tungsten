@@ -8,18 +8,18 @@ import Tungsten.Structure.Tree
 import Test.Inspection
 
 foldBind, foldBindR :: (TreeF b p -> p) -> (a -> Tree b) -> Tree a -> p
-foldBind g f t = cata g (bind t f)
-foldBindR g f t = cata go t
+foldBind g f t = cata g (bind (soften t) f)
+foldBindR g f t = fold go t
   where
     go EmptyF = g EmptyF
-    go (LeafF x) = cata g $ f x
+    go (LeafF x) = fold g $ f x
     go (NodeF a b) = g $ NodeF a b
 
 inspect $ 'foldBind === 'foldBindR
 
 foldFmap, foldFmapR :: (TreeF b p -> p) -> (a -> b) -> Tree a -> p
-foldFmap g f t = cata g (mapt f t)
-foldFmapR g f t = cata go t
+foldFmap g f t = cata g (mapt f (soften t))
+foldFmapR g f t = fold go t
   where
     go EmptyF = g EmptyF
     go (LeafF x) = g (LeafF (f x))
@@ -27,12 +27,7 @@ foldFmapR g f t = cata go t
 
 inspect $ 'foldFmap === 'foldFmapR
 
-dBind, dBindR :: (b -> Tree c) -> (a -> Tree b) -> Tree a -> Tree c
-dBind g f t = bind (bind t f) g
-dBindR g f t = bind t (\x -> bind (f x) g)
-
-inspect $ 'dBind === 'dBindR
-
+{-
 hasLeafleftTree,hasLeafleftTreeR :: Int -> Int -> Bool
 hasLeafleftTree s n  = hasLeaf s (leftTreeN n)
 hasLeafleftTreeR s n = go (Right 1)
@@ -89,3 +84,4 @@ treeFromListAlone  xs = buildR $ \fix' ->
 treeFromListAloneR xs = foldr node empty xs
 
 inspect $ 'treeFromListAlone === 'treeFromListAloneR
+-}
