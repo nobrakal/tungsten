@@ -25,13 +25,14 @@ module Tungsten.Fix
     Fix (..)
   , fix, unfix
 
-  , fold
+    -- * Hard recursion-schemes
+  , fold, para, apo
 
-    -- * Recursion-schemes
-  , cata, para, ana, apo, hylo
+    -- * Soft recursion-schemes
+  , Soft, cata, ana, hylo
 
-    -- * Tools for rewriting
-  , Soft, harden, soften
+    -- * Tools for conversion
+  , harden, soften
   )
 where
 
@@ -84,7 +85,7 @@ fold f = c
 {-# INLINE [0] fold #-}
 
 -- | Type to represent "soft" structure. Composing two functions working
--- with soft values guarantee that no intermediate structure will be built.
+-- with soft values guarantees that no intermediate structure will be built.
 type Soft f = forall a. (f a -> a) -> a
 
 -- | Catamorphism.
@@ -115,13 +116,13 @@ apo g = a where a = fix . (fmap (either id a)) . g
 hylo :: Functor f => (f b -> b) -> (a -> f a) -> a -> b
 hylo f g x = cata f (ana g x)
 
--- | 'harden' a structure. Can be used at _no costs_ when postcomposing with
+-- | "harden" a structure. Can be used at /no costs/ when postcomposing with
 -- a function producing a 'Soft' result.
 harden :: Soft f -> Fix f
 harden g = g Fix
 {-# INLINE harden #-}
 
--- | 'soften' a structure. Can be used at _no costs_ when precomposing with
+-- | "soften" a structure. Can be used at /no costs/ when precomposing with
 -- a function taking a 'Soft' argument.
 soften :: Functor f => Fix f -> Soft f
 soften g = \f -> fold f g

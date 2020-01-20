@@ -15,7 +15,7 @@
 -----------------------------------------------------------------------------
 module Tungsten.Structure.Tree
   ( -- * Binary trees as fixed-points
-    TreeF (..), Tree
+    TreeF (..), Tree, SoftTree
   , empty, leaf, node
 
   -- * Classical operations on trees
@@ -67,6 +67,8 @@ instance Show a => Show1 (TreeF a) where
 
 -- | Binary trees expressed as a fixed-point.
 type Tree a = Fix (TreeF a)
+
+-- | Soft trees, that is trees on which operations can be fused.
 type SoftTree a = Soft (TreeF a)
 
 -- | The empty tree.

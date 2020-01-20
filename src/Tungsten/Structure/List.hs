@@ -16,7 +16,7 @@
 -----------------------------------------------------------------------------
 module Tungsten.Structure.List
   ( -- * Lists as fixed-points
-    ListF (..), List
+    ListF (..), List, SoftList
   , nil, cons
 
   -- * Classical operations on lists
@@ -77,6 +77,8 @@ instance Show a => Show1 (ListF a) where
 
 -- | Linked lists as a fixed-point.
 type List a = Fix (ListF a)
+
+-- | Soft lists, that is lists on which operations can be fused.
 type SoftList a = Soft (ListF a)
 
 instance Ext.IsList (List a) where
