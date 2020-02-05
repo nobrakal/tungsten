@@ -133,7 +133,7 @@ map f xs = coerce $ buildR $ \fix' ->
   in cata go (coerce xs)
 {-# INLINE map #-}
 
--- | Append two lists
+-- | Append two lists.
 -- Good consumers of both arguments and producer.
 append :: List a -> List a -> List a
 append (List xs) ys = coerce $ buildR $ \fix' ->

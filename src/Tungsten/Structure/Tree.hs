@@ -80,17 +80,10 @@ instance Functor Tree where
 instance Applicative Tree where
   pure = leaf
   (Tree x) <*> (Tree y) = Tree $ buildR $ \fix' ->
-    let v f =
-          let go' y =
-                case y of
-                  EmptyF -> fix' EmptyF
-                  LeafF a -> fix' (LeafF (f a))
-                  NodeF a b -> fix' $ NodeF a b
-          in cata go' y
-        go x =
-          case x of
+    let go u =
+          case u of
             EmptyF -> fix' EmptyF
-            LeafF a -> v a
+            LeafF a -> cata (mapAux fix' a) y
             NodeF a b -> fix' $ NodeF a b
     in cata go x
 
@@ -114,14 +107,17 @@ node :: Tree a -> Tree a -> Tree a
 node = \a b -> Tree $ fix $ NodeF (coerce a) (coerce b)
 {-# INLINE node #-}
 
+mapAux :: (TreeF a b -> p) -> (t -> a) -> TreeF t b -> p
+mapAux fix' f = \x ->
+  case x of
+    EmptyF -> fix' EmptyF
+    LeafF a -> fix' (LeafF (f a))
+    NodeF a b -> fix' $ NodeF a b
+{-# INLINE mapAux #-}
+
 mapt :: (a -> b) -> Tree a -> Tree b
 mapt f x = coerce $ buildR $ \fix' ->
-  let go x =
-        case x of
-        EmptyF -> fix' EmptyF
-        LeafF a -> fix' (LeafF (f a))
-        NodeF a b -> fix' $ NodeF a b
-  in cata go (coerce x)
+  cata (mapAux fix' f) (coerce x)
 {-# INLINE mapt #-}
 
 bindt :: Tree a -> (a -> Tree b) -> Tree b
