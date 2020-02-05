@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, DeriveFunctor #-}
+{-# LANGUAGE DeriveFunctor #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module     : Tungsten.Structure.Graph
@@ -16,7 +16,7 @@
 -----------------------------------------------------------------------------
 module Tungsten.Structure.Graph
   ( -- * Algebraic graphs as fixed-points
-    GraphF (..), Graph
+    GraphF (..), Graph (..)
   , empty, vertex, overlay, connect
 
   -- * Classical operations on graphs
@@ -31,6 +31,8 @@ module Tungsten.Structure.Graph
 where
 
 import Data.Functor.Classes
+
+import Data.Coerce (coerce)
 
 import Tungsten.Fix
 
@@ -63,26 +65,29 @@ instance Show2 GraphF where
 instance Show a => Show1 (GraphF a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
 
-type Graph a = Fix (GraphF a)
+newtype Graph a = Graph (Fix (GraphF a))
+
+instance Functor Graph where
+  fmap = mapg
 
 -- | The empty graph.
 empty :: Graph a
-empty = fix EmptyF
+empty = Graph $ fix EmptyF
 {-# INLINE empty #-}
 
 -- | A vertex.
 vertex :: a -> Graph a
-vertex = fix . VertexF
+vertex = Graph . fix . VertexF
 {-# INLINE vertex #-}
 
 -- | Overlay two graphs.
 overlay :: Graph a -> Graph a -> Graph a
-overlay = \a b -> fix (OverlayF a b)
+overlay (Graph a) (Graph b) = Graph $ fix (OverlayF a b)
 {-# INLINE overlay #-}
 
 -- | Connect two graphs.
 connect :: Graph a -> Graph a -> Graph a
-connect = \a b -> fix (ConnectF a b)
+connect (Graph a) (Graph b) = Graph $ fix (ConnectF a b)
 {-# INLINE connect #-}
 
 -- | Fold a graph. Good consumer.
@@ -92,7 +97,7 @@ foldg :: b -- ^ Empty case
       -> (b -> b -> b) -- ^ Connect case
       -> Graph a -- ^ The graph to fold
       -> b
-foldg e v o c = cata go
+foldg e v o c = cata go . coerce
   where
     go EmptyF = e
     go (VertexF x) = v x
@@ -103,17 +108,24 @@ foldg e v o c = cata go
 -- | 'fmap' for algebraic graphs.
 -- Good consumer and good producer.
 mapg :: (a -> b) -> Graph a -> Graph b
-mapg f g = bind g (vertex . f)
+mapg f (Graph g) = Graph $ buildR $ \fix' ->
+  let go x =
+        case x of
+          EmptyF -> fix' EmptyF
+          VertexF a -> fix' $ VertexF $ f a
+          OverlayF a b -> fix' $ OverlayF a b
+          ConnectF a b -> fix' $ ConnectF a b
+  in cata go g
 {-# INLINE mapg #-}
 
 -- | @bind@ for algebraic graphs.
 -- Good consumer and good producer.
 bind :: Graph a -> (a -> Graph b) -> Graph b
-bind g f = buildR $ \fix' ->
+bind (Graph g) f = Graph $ buildR $ \fix' ->
   let go x =
         case x of
           EmptyF -> fix' EmptyF
-          VertexF a -> cata fix' $ f a
+          VertexF a -> cata fix' $ coerce $ f a
           OverlayF a b -> fix' $ OverlayF a b
           ConnectF a b -> fix' $ ConnectF a b
   in cata go g
@@ -122,7 +134,7 @@ bind g f = buildR $ \fix' ->
 -- | Transpose a graph.
 -- Good consumer and good producer.
 transpose :: Graph a -> Graph a
-transpose g = buildR $ \fix' ->
+transpose (Graph g) = Graph $ buildR $ \fix' ->
   let go x =
         case x of
           ConnectF a b -> fix' $ ConnectF b a
@@ -133,7 +145,7 @@ transpose g = buildR $ \fix' ->
 -- | Test if a vertex is in a graph.
 -- Good consumer.
 hasVertex :: Eq a => a -> Graph a -> Bool
-hasVertex v = cata go
+hasVertex v = cata go . coerce
   where
     go EmptyF = False
     go (VertexF x) = v == x
@@ -144,14 +156,14 @@ hasVertex v = cata go
 -- | Construct the graph comprising a given list of isolated vertices.
 -- Good consumer of lists and producer of graphs.
 vertices :: [a] -> Graph a
-vertices xs = buildR $ \fix' ->
+vertices xs = Graph $ buildR $ \fix' ->
   foldr (\x -> fix' . OverlayF (fix' (VertexF x))) (fix' EmptyF) xs
 {-# INLINE vertices #-}
 
 -- | Construct a graph from a list of edges
 -- Good consumer of lists and producer of graphs.
 edges :: [(a,a)] -> Graph a
-edges xs = buildR $ \fix' ->
+edges xs = Graph $ buildR $ \fix' ->
   let edge' (u,v) = (fix' $ ConnectF (fix' (VertexF u)) (fix' (VertexF v)))
   in foldr (\e -> fix' . OverlayF (edge' e)) (fix' EmptyF) xs
 {-# INLINE edges #-}
