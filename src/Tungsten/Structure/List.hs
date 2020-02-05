@@ -109,26 +109,29 @@ instance Ext.IsList (List a) where
 nil :: List a
 nil = List (fix NilF)
 
+consF :: (ListF a b -> t) -> a -> b -> t
+consF f = \a b -> f (ConsF a b)
+
 -- | The cons operator. Similar to 'Prelude.(:)' for Prelude lists.
 cons :: a -> List a -> List a
-cons x (List xs) = List (fix (ConsF x xs))
+cons x (List xs) = List (consF fix x xs)
 
 -- Auxilliary function
-foldListF :: p -> (t1 -> t2 -> p) -> ListF t1 t2 -> p
-foldListF n _ NilF = n
-foldListF _ c (ConsF a b) = c a b
-{-# INLINE foldListF #-}
+listF :: p -> (t1 -> t2 -> p) -> ListF t1 t2 -> p
+listF n _ NilF = n
+listF _ c (ConsF a b) = c a b
+{-# INLINE listF #-}
 
 -- | The classical right fold. Good consumer.
 foldr :: (a -> b -> b) -> b -> List a -> b
-foldr c n = cata (foldListF n c) . coerce
+foldr c n = cata (listF n c) . coerce
 {-# INLINE foldr #-}
 
 -- | The classical map.
 -- Good consumer and good producer.
 map :: (a -> b) -> List a -> List b
 map f xs = coerce $ buildR $ \fix' ->
-  let go = foldListF (fix' NilF) (\a -> fix' . ConsF (f a))
+  let go = listF (fix' NilF) (\a -> fix' . ConsF (f a))
   in cata go (coerce xs)
 {-# INLINE map #-}
 
@@ -136,7 +139,7 @@ map f xs = coerce $ buildR $ \fix' ->
 -- Good consumers of both arguments and producer.
 append :: List a -> List a -> List a
 append (List xs) ys = coerce $ buildR $ \fix' ->
-  let go = foldListF (cata fix' (coerce ys)) (\a b -> fix' $ ConsF a b)
+  let go = listF (cata fix' (coerce ys)) (consF fix')
   in cata go xs
 {-# INLINE append #-}
 
@@ -144,16 +147,16 @@ append (List xs) ys = coerce $ buildR $ \fix' ->
 bind :: List a -> (a -> List b) -> List b
 bind (List xs) f = List $ buildR $ \fix' ->
   let append' (List xs') ys' =
-        let go = foldListF ys' (\a b -> fix' (ConsF a b))
+        let go = listF ys' (consF fix')
         in cata go xs'
-      go' = foldListF (fix' NilF) (append' . f)
+      go' = listF (fix' NilF) (append' . f)
   in cata go' xs
 {-# INLINE bind #-}
 
 -- | Search an element in a list.
 -- Good consumer.
 elem :: Eq a => a -> List a -> Bool
-elem e = cata (foldListF False (\a -> (||) (a == e))) . coerce
+elem e = cata (listF False (\a -> (||) (a == e))) . coerce
 {-# INLINE elem #-}
 
 -- | @range start end@ will produce a list containing int
@@ -172,13 +175,7 @@ range start end = coerce $ ana go start
 -- Good producer (of Prelude lists) and good consumer (of fixed-point lists).
 toList :: List a -> [a]
 toList xs =
-  build
-  (\c n ->
-     let go ys =
-           case ys of
-             NilF -> n
-             ConsF a b -> c a b
-     in cata go (coerce xs))
+  build (\c n -> cata (\x -> listF n c x) (coerce xs))
 {-# INLINE toList #-}
 
 -- | Transform a Prelude list into a fixed-point one.
