@@ -96,9 +96,10 @@ instance Applicative List where
   pure x = cons x nil
   fs <*> xs = foldr (\f acc -> foldr (\x -> cons (f x)) acc xs) nil fs
 
+-- | `>>=` is a good consumer and producer.
 instance Monad List where
   return = pure
-  (>>=) = bind -- | bind is a good consumer and producer.
+  (>>=) = bind
 
 instance Ext.IsList (List a) where
   type (Item (List a)) = a
