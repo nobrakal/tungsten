@@ -20,7 +20,7 @@ module Tungsten.Structure.List
   , nil, cons
 
   -- * Classical operations on lists
-  , foldr, map
+  , foldr, map, append
 
   -- * Operations on lists
   , elem, range
@@ -34,6 +34,8 @@ import Data.Functor.Classes
 
 import Prelude hiding (foldr, map, elem, sum)
 import qualified Prelude as Prelude
+
+import Data.Coerce (coerce)
 
 import Tungsten.Fix
 import GHC.Base (build)
@@ -76,7 +78,27 @@ instance Show a => Show1 (ListF a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
 
 -- | Linked lists as a fixed-point.
-type List a = Fix (ListF a)
+newtype List a = List (Fix (ListF a))
+
+instance Eq a => Eq (List a) where
+  (List xs) == (List ys) = xs == ys
+
+instance Ord a => Ord (List a) where
+  compare (List xs) (List ys) = compare xs ys
+
+instance Show a => Show (List a) where
+  show (List xs) = show xs
+
+instance Functor List where
+  fmap = map
+
+instance Applicative List where
+  pure x = cons x nil
+  fs <*> xs = foldr (\f acc -> foldr (\x -> cons (f x)) acc xs) nil fs
+
+instance Monad List where
+  return = pure
+  (>>=) = bind -- | bind is a good consumer and producer.
 
 instance Ext.IsList (List a) where
   type (Item (List a)) = a
@@ -85,15 +107,15 @@ instance Ext.IsList (List a) where
 
 -- | The empty list. Similar to 'Prelude.[]' for Prelude lists.
 nil :: List a
-nil = fix NilF
+nil = List (fix NilF)
 
 -- | The cons operator. Similar to 'Prelude.(:)' for Prelude lists.
 cons :: a -> List a -> List a
-cons x xs = fix (ConsF x xs)
+cons x (List xs) = List (fix (ConsF x xs))
 
 -- | The classical right fold. Good consumer.
 foldr :: (a -> b -> b) -> b -> List a -> b
-foldr c n = cata go
+foldr c n = cata go . coerce
   where
     go NilF = n
     go (ConsF a b) = c a b
@@ -102,18 +124,45 @@ foldr c n = cata go
 -- | The classical map.
 -- Good consumer and good producer.
 map :: (a -> b) -> List a -> List b
-map f xs = buildR $ \fix' ->
+map f xs = coerce $ buildR $ \fix' ->
   let go x =
         case x of
           NilF -> fix' NilF
           ConsF a b -> fix' $ ConsF (f a) b
-  in cata go xs
+  in cata go (coerce xs)
 {-# INLINE map #-}
+
+-- | Append two lists
+-- Good consumers of both arguments and producer.
+append :: List a -> List a -> List a
+append (List xs) ys = coerce $ buildR $ \fix' ->
+  let go x =
+        case x of
+          NilF -> cata fix' (coerce ys)
+          ConsF a b -> fix' $ ConsF a b
+  in cata go xs
+{-# INLINE append #-}
+
+-- bind
+bind :: List a -> (a -> List b) -> List b
+bind (List xs) f = List $ buildR $ \fix' ->
+  let append' xs' ys' =
+        let go x =
+              case x of
+                NilF -> ys'
+                ConsF a b -> fix' (ConsF a b)
+        in cata go xs'
+      go' x =
+        case x of
+          NilF -> fix' NilF
+          ConsF a b -> append' (coerce (f a)) b
+  in cata go' xs
+{-# INLINE bind #-}
 
 -- | Search an element in a list.
 -- Good consumer.
 elem :: Eq a => a -> List a -> Bool
-elem e = cata go
+elem e = cata go . coerce
   where
     go NilF = False
     go (ConsF a b) = a == e || b
@@ -123,7 +172,7 @@ elem e = cata go
 -- in ascending order from @start@ (inclusive) to @end@ (exclusive).
 -- Good producer.
 range :: Int -> Int -> List Int
-range start end = ana go start
+range start end = coerce $ ana go start
   where
     go n =
       if n > end
@@ -141,11 +190,11 @@ toList xs =
            case ys of
              NilF -> n
              ConsF a b -> c a b
-     in cata go xs)
+     in cata go (coerce xs))
 {-# INLINE toList #-}
 
 -- | Transform a Prelude list into a fixed-point one.
 -- Good producer (fixed-point lists) and good consumer of (of Prelude lists).
 fromList :: [a] -> List a
-fromList xs = buildR $ \fix' -> Prelude.foldr (\x -> fix' . ConsF x) (fix' NilF) xs
+fromList xs = coerce $ buildR $ \fix' -> Prelude.foldr (\x -> fix' . ConsF x) (fix' NilF) xs
 {-# INLINE fromList #-}
