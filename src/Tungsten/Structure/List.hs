@@ -16,7 +16,7 @@
 -----------------------------------------------------------------------------
 module Tungsten.Structure.List
   ( -- * Lists as fixed-points
-    ListF (..), List
+    ListF (..), List (..)
   , nil, cons
 
   -- * Classical operations on lists

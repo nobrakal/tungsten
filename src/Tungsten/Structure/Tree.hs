@@ -1,4 +1,4 @@
-{-# LANGUAGE FlexibleInstances, DeriveFunctor #-}
+{-# LANGUAGE DeriveFunctor #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module     : Tungsten.Structure.Tree
@@ -15,11 +15,8 @@
 -----------------------------------------------------------------------------
 module Tungsten.Structure.Tree
   ( -- * Binary trees as fixed-points
-    TreeF (..), Tree
+    TreeF (..), Tree (..)
   , empty, leaf, node
-
-  -- * Classical operations on trees
-  , mapt, bind
 
   -- * Operations on trees
   , hasLeaf
@@ -30,6 +27,8 @@ module Tungsten.Structure.Tree
 where
 
 import Data.Functor.Classes
+
+import Data.Coerce (coerce)
 
 import Tungsten.Fix
 
@@ -66,46 +65,80 @@ instance Show a => Show1 (TreeF a) where
   liftShowsPrec = liftShowsPrec2 showsPrec showList
 
 -- | Binary trees expressed as a fixed-point.
-type Tree a = Fix (TreeF a)
+newtype Tree a = Tree (Fix (TreeF a))
+
+instance Eq a => Eq (Tree a) where
+  (Tree x) == (Tree y) = x == y
+
+instance Show a => Show (Tree a) where
+  show (Tree x) = show x
+
+-- | 'fmap' is a good consumer and good producer.
+instance Functor Tree where
+  fmap = mapt
+
+instance Applicative Tree where
+  pure = leaf
+  (Tree x) <*> (Tree y) = Tree $ buildR $ \fix' ->
+    let v f =
+          let go' y =
+                case y of
+                  EmptyF -> fix' EmptyF
+                  LeafF a -> fix' (LeafF (f a))
+                  NodeF a b -> fix' $ NodeF a b
+          in cata go' y
+        go x =
+          case x of
+            EmptyF -> fix' EmptyF
+            LeafF a -> v a
+            NodeF a b -> fix' $ NodeF a b
+    in cata go x
+
+-- | `>>=` is a good consumer and good producer.
+instance Monad Tree where
+  return = pure
+  (>>=) = bindt
 
 -- | The empty tree.
 empty :: Tree a
-empty = fix EmptyF
+empty = Tree $ fix EmptyF
 {-# INLINE empty #-}
 
 -- | A leaf.
 leaf :: a -> Tree a
-leaf = fix . LeafF
+leaf = Tree . fix . LeafF
 {-# INLINE leaf #-}
 
 -- | A node.
 node :: Tree a -> Tree a -> Tree a
-node = \a b -> fix (NodeF a b)
+node = \a b -> Tree $ fix $ NodeF (coerce a) (coerce b)
 {-# INLINE node #-}
 
--- | 'fmap' for trees.
--- Good consumer and good producer.
 mapt :: (a -> b) -> Tree a -> Tree b
-mapt f t = bind t (fix . LeafF . f)
+mapt f x = coerce $ buildR $ \fix' ->
+  let go x =
+        case x of
+        EmptyF -> fix' EmptyF
+        LeafF a -> fix' (LeafF (f a))
+        NodeF a b -> fix' $ NodeF a b
+  in cata go (coerce x)
 {-# INLINE mapt #-}
 
--- | @bind@ for trees.
--- Good consumer and good producer.
-bind :: Tree a -> (a -> Tree b) -> Tree b
-bind t f = buildR $ \fix' ->
+bindt :: Tree a -> (a -> Tree b) -> Tree b
+bindt t f = Tree $ buildR $ \fix' ->
   cata
   (\x ->
       case x of
         EmptyF -> fix' EmptyF
-        LeafF a -> cata fix' $ f a
+        LeafF a -> cata fix' $ coerce $ f a
         NodeF a b -> fix' $ NodeF a b)
-  t
-{-# INLINE bind #-}
+  (coerce t)
+{-# INLINE bindt #-}
 
 -- | @hasLeaf s t@ tests if the leaf @s@ is present in the tree @t@.
 -- Good consumer.
 hasLeaf :: Eq a => a -> Tree a -> Bool
-hasLeaf s = cata go
+hasLeaf s = cata go . coerce
   where
     go EmptyF = False
     go (LeafF x) = x == s
@@ -115,14 +148,14 @@ hasLeaf s = cata go
 -- | Construct a binary tree from a list.
 -- Good consumer (of Prelude lists) and good producer (of trees).
 treeFromList :: [Tree a] -> Tree a
-treeFromList xs = buildR $ \fix' ->
-  foldr (\x -> fix' . NodeF (cata fix' x)) (fix' EmptyF) xs
+treeFromList xs = Tree $ buildR $ \fix' ->
+  foldr (\x -> fix' . NodeF (cata fix' (coerce x))) (fix' EmptyF) xs
 {-# INLINE treeFromList #-}
 
 -- | @leftTree n@ construct a tree with n leaves from 1 to n.
 -- Good producer.
 leftTreeN :: Int -> Tree Int
-leftTreeN n = ana go (Right 1)
+leftTreeN n = coerce $ ana go (Right 1)
   where
     go (Left n') = LeafF n'
     go (Right n') =
