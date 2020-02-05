@@ -109,7 +109,8 @@ EmptyF :: GraphF a b
 VertexF :: a -> GraphF a b
 OverlayF :: b -> b -> GraphF a b
 ConnectF :: b -> b -> GraphF a b
-type Graph a = Fix (GraphF a)
+newtype Graph a
+Graph :: Fix (GraphF a) -> Graph a
 
 -- | The empty graph.
 empty :: Graph a
@@ -150,6 +151,8 @@ instance (GHC.Read.Read a, GHC.Read.Read b) => GHC.Read.Read (Tungsten.Structure
 instance (GHC.Show.Show a, GHC.Show.Show b) => GHC.Show.Show (Tungsten.Structure.Graph.GraphF a b)
 instance (GHC.Classes.Ord a, GHC.Classes.Ord b) => GHC.Classes.Ord (Tungsten.Structure.Graph.GraphF a b)
 instance (GHC.Classes.Eq a, GHC.Classes.Eq b) => GHC.Classes.Eq (Tungsten.Structure.Graph.GraphF a b)
+instance GHC.Show.Show a => GHC.Show.Show (Tungsten.Structure.Graph.Graph a)
+instance GHC.Base.Functor Tungsten.Structure.Graph.Graph
 instance Data.Functor.Classes.Show2 Tungsten.Structure.Graph.GraphF
 instance GHC.Show.Show a => Data.Functor.Classes.Show1 (Tungsten.Structure.Graph.GraphF a)
 
