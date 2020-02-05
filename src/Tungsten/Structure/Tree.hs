@@ -81,7 +81,7 @@ instance Applicative Tree where
   pure = leaf
   (Tree x) <*> (Tree y) = Tree $ buildR $ \fix' ->
     let go =
-          foldTreeF (fix' EmptyF) (\a -> cata (mapAux fix' a) y) (\a b -> fix' $ NodeF a b)
+          foldTreeF (fix' EmptyF) (\a -> cata (mapAux fix' a) y) (nodeF fix')
     in cata go x
 
 -- | `>>=` is a good consumer and good producer.
@@ -104,6 +104,10 @@ node :: Tree a -> Tree a -> Tree a
 node = \a b -> Tree $ fix $ NodeF (coerce a) (coerce b)
 {-# INLINE node #-}
 
+nodeF :: (TreeF a b -> t) -> b -> b -> t
+nodeF f = \a b -> f $ NodeF a b
+{-# INLINE nodeF #-}
+
 foldTreeF :: p -> (t1 -> p) -> (t2 -> t2 -> p) -> TreeF t1 t2 -> p
 foldTreeF e _ _ EmptyF = e
 foldTreeF _ l _ (LeafF x) = l x
@@ -112,7 +116,7 @@ foldTreeF _ _ n (NodeF a b) = n a b
 
 mapAux :: (TreeF a b -> p) -> (t -> a) -> TreeF t b -> p
 mapAux fix' f =
-  foldTreeF (fix' EmptyF) (fix' . LeafF . f) (\a b -> fix' (NodeF a b))
+  foldTreeF (fix' EmptyF) (fix' . LeafF . f) (nodeF fix')
 {-# INLINE mapAux #-}
 
 mapt :: (a -> b) -> Tree a -> Tree b
@@ -123,7 +127,7 @@ mapt f x = coerce $ buildR $ \fix' ->
 bindt :: Tree a -> (a -> Tree b) -> Tree b
 bindt t f = Tree $ buildR $ \fix' ->
   let go =
-        foldTreeF (fix' EmptyF) (cata fix' . coerce . f) (\a b -> fix' $ NodeF a b)
+        foldTreeF (fix' EmptyF) (cata fix' . coerce . f) (nodeF fix')
   in cata go (coerce t)
 {-# INLINE bindt #-}
 

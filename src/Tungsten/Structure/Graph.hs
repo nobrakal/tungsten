@@ -67,6 +67,9 @@ instance Show a => Show1 (GraphF a) where
 
 newtype Graph a = Graph (Fix (GraphF a))
 
+instance Show a => Show (Graph a) where
+  show (Graph g) = show g
+
 instance Functor Graph where
   fmap = mapg
 
@@ -90,6 +93,13 @@ connect :: Graph a -> Graph a -> Graph a
 connect (Graph a) (Graph b) = Graph $ fix (ConnectF a b)
 {-# INLINE connect #-}
 
+foldgF :: p -> (t1 -> p) -> (t2 -> t2 -> p) -> (t2 -> t2 -> p) -> GraphF t1 t2 -> p
+foldgF e _ _ _ EmptyF = e
+foldgF _ v _ _ (VertexF x) = v x
+foldgF _ _ o _ (OverlayF a b) = o a b
+foldgF _ _ _ c (ConnectF a b) = c a b
+{-# INLINE foldgF #-}
+
 -- | Fold a graph. Good consumer.
 foldg :: b -- ^ Empty case
       -> (a -> b) -- ^ Vertex case
@@ -97,24 +107,20 @@ foldg :: b -- ^ Empty case
       -> (b -> b -> b) -- ^ Connect case
       -> Graph a -- ^ The graph to fold
       -> b
-foldg e v o c = cata go . coerce
-  where
-    go EmptyF = e
-    go (VertexF x) = v x
-    go (OverlayF a b) = o a b
-    go (ConnectF a b) = c a b
+foldg e v o c = cata (foldgF e v o c) . coerce
 {-# INLINE foldg #-}
+
+overlayF :: (GraphF a b -> t) -> b -> b -> t
+overlayF f = \a b -> f (OverlayF a b)
+
+connectF :: (GraphF a b -> t) -> b -> b -> t
+connectF f = \a b -> f (ConnectF a b)
 
 -- | 'fmap' for algebraic graphs.
 -- Good consumer and good producer.
 mapg :: (a -> b) -> Graph a -> Graph b
 mapg f (Graph g) = Graph $ buildR $ \fix' ->
-  let go x =
-        case x of
-          EmptyF -> fix' EmptyF
-          VertexF a -> fix' $ VertexF $ f a
-          OverlayF a b -> fix' $ OverlayF a b
-          ConnectF a b -> fix' $ ConnectF a b
+  let go = fix' . foldgF EmptyF (VertexF . f) OverlayF ConnectF
   in cata go g
 {-# INLINE mapg #-}
 
@@ -122,12 +128,7 @@ mapg f (Graph g) = Graph $ buildR $ \fix' ->
 -- Good consumer and good producer.
 bind :: Graph a -> (a -> Graph b) -> Graph b
 bind (Graph g) f = Graph $ buildR $ \fix' ->
-  let go x =
-        case x of
-          EmptyF -> fix' EmptyF
-          VertexF a -> cata fix' $ coerce $ f a
-          OverlayF a b -> fix' $ OverlayF a b
-          ConnectF a b -> fix' $ ConnectF a b
+  let go = foldgF (fix' EmptyF) (cata fix' . coerce . f) (overlayF fix') (connectF fix')
   in cata go g
 {-# INLINE bind #-}
 
@@ -145,12 +146,7 @@ transpose (Graph g) = Graph $ buildR $ \fix' ->
 -- | Test if a vertex is in a graph.
 -- Good consumer.
 hasVertex :: Eq a => a -> Graph a -> Bool
-hasVertex v = cata go . coerce
-  where
-    go EmptyF = False
-    go (VertexF x) = v == x
-    go (OverlayF a b) = a || b
-    go (ConnectF a b) = a || b
+hasVertex v = cata (foldgF False (==v) (||) (||)) . coerce
 {-# INLINE hasVertex #-}
 
 -- | Construct the graph comprising a given list of isolated vertices.

@@ -15,6 +15,6 @@ inspect $ 'transposeSwap === 'transposeSwapR
 
 hasVertexVertices, hasVertexVerticesR :: Eq a => a -> [a] -> Bool
 hasVertexVertices  x xs = hasVertex x (vertices xs)
-hasVertexVerticesR x xs = foldr (\y b -> x == y || b) False xs
+hasVertexVerticesR x xs = foldr (\y b -> y == x || b) False xs
 
 inspect $ 'hasVertexVertices === 'hasVertexVerticesR
