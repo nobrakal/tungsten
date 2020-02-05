@@ -80,11 +80,8 @@ instance Functor Tree where
 instance Applicative Tree where
   pure = leaf
   (Tree x) <*> (Tree y) = Tree $ buildR $ \fix' ->
-    let go u =
-          case u of
-            EmptyF -> fix' EmptyF
-            LeafF a -> cata (mapAux fix' a) y
-            NodeF a b -> fix' $ NodeF a b
+    let go =
+          foldTreeF (fix' EmptyF) (\a -> cata (mapAux fix' a) y) (\a b -> fix' $ NodeF a b)
     in cata go x
 
 -- | `>>=` is a good consumer and good producer.
@@ -107,12 +104,15 @@ node :: Tree a -> Tree a -> Tree a
 node = \a b -> Tree $ fix $ NodeF (coerce a) (coerce b)
 {-# INLINE node #-}
 
+foldTreeF :: p -> (t1 -> p) -> (t2 -> t2 -> p) -> TreeF t1 t2 -> p
+foldTreeF e _ _ EmptyF = e
+foldTreeF _ l _ (LeafF x) = l x
+foldTreeF _ _ n (NodeF a b) = n a b
+{-# INLINE foldTreeF #-}
+
 mapAux :: (TreeF a b -> p) -> (t -> a) -> TreeF t b -> p
-mapAux fix' f = \x ->
-  case x of
-    EmptyF -> fix' EmptyF
-    LeafF a -> fix' (LeafF (f a))
-    NodeF a b -> fix' $ NodeF a b
+mapAux fix' f =
+  foldTreeF (fix' EmptyF) (fix' . LeafF . f) (\a b -> fix' (NodeF a b))
 {-# INLINE mapAux #-}
 
 mapt :: (a -> b) -> Tree a -> Tree b
@@ -122,23 +122,15 @@ mapt f x = coerce $ buildR $ \fix' ->
 
 bindt :: Tree a -> (a -> Tree b) -> Tree b
 bindt t f = Tree $ buildR $ \fix' ->
-  cata
-  (\x ->
-      case x of
-        EmptyF -> fix' EmptyF
-        LeafF a -> cata fix' $ coerce $ f a
-        NodeF a b -> fix' $ NodeF a b)
-  (coerce t)
+  let go =
+        foldTreeF (fix' EmptyF) (cata fix' . coerce . f) (\a b -> fix' $ NodeF a b)
+  in cata go (coerce t)
 {-# INLINE bindt #-}
 
 -- | @hasLeaf s t@ tests if the leaf @s@ is present in the tree @t@.
 -- Good consumer.
 hasLeaf :: Eq a => a -> Tree a -> Bool
-hasLeaf s = cata go . coerce
-  where
-    go EmptyF = False
-    go (LeafF x) = x == s
-    go (NodeF a b) = a || b
+hasLeaf s = cata (foldTreeF False (==s) (||)) . coerce
 {-# INLINE hasLeaf #-}
 
 -- | Construct a binary tree from a list.

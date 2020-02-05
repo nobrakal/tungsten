@@ -1,5 +1,4 @@
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE FlexibleInstances, DeriveFunctor, OverloadedLists #-}
+{-# LANGUAGE TypeFamilies, DeriveFunctor, OverloadedLists #-}
 -----------------------------------------------------------------------------
 -- |
 -- Module     : Tungsten.Structure.List
@@ -114,22 +113,22 @@ nil = List (fix NilF)
 cons :: a -> List a -> List a
 cons x (List xs) = List (fix (ConsF x xs))
 
+-- Auxilliary function
+foldListF :: p -> (t1 -> t2 -> p) -> ListF t1 t2 -> p
+foldListF n _ NilF = n
+foldListF _ c (ConsF a b) = c a b
+{-# INLINE foldListF #-}
+
 -- | The classical right fold. Good consumer.
 foldr :: (a -> b -> b) -> b -> List a -> b
-foldr c n = cata go . coerce
-  where
-    go NilF = n
-    go (ConsF a b) = c a b
+foldr c n = cata (foldListF n c) . coerce
 {-# INLINE foldr #-}
 
 -- | The classical map.
 -- Good consumer and good producer.
 map :: (a -> b) -> List a -> List b
 map f xs = coerce $ buildR $ \fix' ->
-  let go x =
-        case x of
-          NilF -> fix' NilF
-          ConsF a b -> fix' $ ConsF (f a) b
+  let go = foldListF (fix' NilF) (\a -> fix' . ConsF (f a))
   in cata go (coerce xs)
 {-# INLINE map #-}
 
@@ -137,36 +136,24 @@ map f xs = coerce $ buildR $ \fix' ->
 -- Good consumers of both arguments and producer.
 append :: List a -> List a -> List a
 append (List xs) ys = coerce $ buildR $ \fix' ->
-  let go x =
-        case x of
-          NilF -> cata fix' (coerce ys)
-          ConsF a b -> fix' $ ConsF a b
+  let go = foldListF (cata fix' (coerce ys)) (\a b -> fix' $ ConsF a b)
   in cata go xs
 {-# INLINE append #-}
 
 -- bind
 bind :: List a -> (a -> List b) -> List b
 bind (List xs) f = List $ buildR $ \fix' ->
-  let append' xs' ys' =
-        let go x =
-              case x of
-                NilF -> ys'
-                ConsF a b -> fix' (ConsF a b)
+  let append' (List xs') ys' =
+        let go = foldListF ys' (\a b -> fix' (ConsF a b))
         in cata go xs'
-      go' x =
-        case x of
-          NilF -> fix' NilF
-          ConsF a b -> append' (coerce (f a)) b
+      go' = foldListF (fix' NilF) (append' . f)
   in cata go' xs
 {-# INLINE bind #-}
 
 -- | Search an element in a list.
 -- Good consumer.
 elem :: Eq a => a -> List a -> Bool
-elem e = cata go . coerce
-  where
-    go NilF = False
-    go (ConsF a b) = a == e || b
+elem e = cata (foldListF False (\a -> (||) (a == e))) . coerce
 {-# INLINE elem #-}
 
 -- | @range start end@ will produce a list containing int
