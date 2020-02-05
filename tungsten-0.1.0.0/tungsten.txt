@@ -167,7 +167,8 @@ NilF :: ListF a b
 ConsF :: a -> b -> ListF a b
 
 -- | Linked lists as a fixed-point.
-data List a
+newtype List a
+List :: Fix (ListF a) -> List a
 
 -- | The empty list. Similar to 'Prelude.[]' for Prelude lists.
 nil :: List a
@@ -233,7 +234,8 @@ LeafF :: a -> TreeF a b
 NodeF :: b -> b -> TreeF a b
 
 -- | Binary trees expressed as a fixed-point.
-type Tree a = Fix (TreeF a)
+newtype Tree a
+Tree :: Fix (TreeF a) -> Tree a
 
 -- | The empty tree.
 empty :: Tree a
@@ -243,12 +245,6 @@ leaf :: a -> Tree a
 
 -- | A node.
 node :: Tree a -> Tree a -> Tree a
-
--- | <a>fmap</a> for trees. Good consumer and good producer.
-mapt :: (a -> b) -> Tree a -> Tree b
-
--- | <tt>bind</tt> for trees. Good consumer and good producer.
-bind :: Tree a -> (a -> Tree b) -> Tree b
 
 -- | <tt>hasLeaf s t</tt> tests if the leaf <tt>s</tt> is present in the
 --   tree <tt>t</tt>. Good consumer.
@@ -266,6 +262,11 @@ instance (GHC.Read.Read a, GHC.Read.Read b) => GHC.Read.Read (Tungsten.Structure
 instance (GHC.Show.Show a, GHC.Show.Show b) => GHC.Show.Show (Tungsten.Structure.Tree.TreeF a b)
 instance (GHC.Classes.Ord a, GHC.Classes.Ord b) => GHC.Classes.Ord (Tungsten.Structure.Tree.TreeF a b)
 instance (GHC.Classes.Eq a, GHC.Classes.Eq b) => GHC.Classes.Eq (Tungsten.Structure.Tree.TreeF a b)
+instance GHC.Classes.Eq a => GHC.Classes.Eq (Tungsten.Structure.Tree.Tree a)
+instance GHC.Show.Show a => GHC.Show.Show (Tungsten.Structure.Tree.Tree a)
+instance GHC.Base.Functor Tungsten.Structure.Tree.Tree
+instance GHC.Base.Applicative Tungsten.Structure.Tree.Tree
+instance GHC.Base.Monad Tungsten.Structure.Tree.Tree
 instance Data.Functor.Classes.Eq2 Tungsten.Structure.Tree.TreeF
 instance GHC.Classes.Eq a => Data.Functor.Classes.Eq1 (Tungsten.Structure.Tree.TreeF a)
 instance Data.Functor.Classes.Show2 Tungsten.Structure.Tree.TreeF
