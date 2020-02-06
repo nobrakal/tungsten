@@ -127,12 +127,6 @@ connect :: Graph a -> Graph a -> Graph a
 -- | Fold a graph. Good consumer.
 foldg :: b -> (a -> b) -> (b -> b -> b) -> (b -> b -> b) -> Graph a -> b
 
--- | <a>fmap</a> for algebraic graphs. Good consumer and good producer.
-mapg :: (a -> b) -> Graph a -> Graph b
-
--- | <tt>bind</tt> for algebraic graphs. Good consumer and good producer.
-bind :: Graph a -> (a -> Graph b) -> Graph b
-
 -- | Transpose a graph. Good consumer and good producer.
 transpose :: Graph a -> Graph a
 
@@ -153,6 +147,8 @@ instance (GHC.Classes.Ord a, GHC.Classes.Ord b) => GHC.Classes.Ord (Tungsten.Str
 instance (GHC.Classes.Eq a, GHC.Classes.Eq b) => GHC.Classes.Eq (Tungsten.Structure.Graph.GraphF a b)
 instance GHC.Show.Show a => GHC.Show.Show (Tungsten.Structure.Graph.Graph a)
 instance GHC.Base.Functor Tungsten.Structure.Graph.Graph
+instance GHC.Base.Applicative Tungsten.Structure.Graph.Graph
+instance GHC.Base.Monad Tungsten.Structure.Graph.Graph
 instance Data.Functor.Classes.Show2 Tungsten.Structure.Graph.GraphF
 instance GHC.Show.Show a => Data.Functor.Classes.Show1 (Tungsten.Structure.Graph.GraphF a)
 
