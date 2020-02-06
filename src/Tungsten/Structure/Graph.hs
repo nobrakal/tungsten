@@ -20,7 +20,7 @@ module Tungsten.Structure.Graph
   , empty, vertex, overlay, connect
 
   -- * Classical operations on graphs
-  , foldg, mapg, bind
+  , foldg
 
   -- * Operations on graphs
   , transpose, hasVertex
@@ -73,6 +73,19 @@ instance Show a => Show (Graph a) where
 instance Functor Graph where
   fmap = mapg
 
+instance Applicative Graph where
+  pure = vertex
+  (Graph f) <*> (Graph x) = Graph $ buildR $ \fix' ->
+    let e = fix' EmptyF
+        o = overlayF fix'
+        c = overlayF fix'
+    in
+    cata (graphF e (\f' -> cata (graphF e (fix' . VertexF . f') o c) x) o c) f
+
+instance Monad Graph where
+  return = pure
+  (>>=) = bind
+
 -- | The empty graph.
 empty :: Graph a
 empty = Graph $ fix EmptyF
@@ -93,12 +106,12 @@ connect :: Graph a -> Graph a -> Graph a
 connect (Graph a) (Graph b) = Graph $ fix (ConnectF a b)
 {-# INLINE connect #-}
 
-foldgF :: p -> (t1 -> p) -> (t2 -> t2 -> p) -> (t2 -> t2 -> p) -> GraphF t1 t2 -> p
-foldgF e _ _ _ EmptyF = e
-foldgF _ v _ _ (VertexF x) = v x
-foldgF _ _ o _ (OverlayF a b) = o a b
-foldgF _ _ _ c (ConnectF a b) = c a b
-{-# INLINE foldgF #-}
+graphF :: p -> (t1 -> p) -> (t2 -> t2 -> p) -> (t2 -> t2 -> p) -> GraphF t1 t2 -> p
+graphF e _ _ _ EmptyF = e
+graphF _ v _ _ (VertexF x) = v x
+graphF _ _ o _ (OverlayF a b) = o a b
+graphF _ _ _ c (ConnectF a b) = c a b
+{-# INLINE graphF #-}
 
 -- | Fold a graph. Good consumer.
 foldg :: b -- ^ Empty case
@@ -107,7 +120,7 @@ foldg :: b -- ^ Empty case
       -> (b -> b -> b) -- ^ Connect case
       -> Graph a -- ^ The graph to fold
       -> b
-foldg e v o c = cata (foldgF e v o c) . coerce
+foldg e v o c = cata (graphF e v o c) . coerce
 {-# INLINE foldg #-}
 
 overlayF :: (GraphF a b -> t) -> b -> b -> t
@@ -120,7 +133,7 @@ connectF f = \a b -> f (ConnectF a b)
 -- Good consumer and good producer.
 mapg :: (a -> b) -> Graph a -> Graph b
 mapg f (Graph g) = Graph $ buildR $ \fix' ->
-  let go = fix' . foldgF EmptyF (VertexF . f) OverlayF ConnectF
+  let go = fix' . graphF EmptyF (VertexF . f) OverlayF ConnectF
   in cata go g
 {-# INLINE mapg #-}
 
@@ -128,7 +141,7 @@ mapg f (Graph g) = Graph $ buildR $ \fix' ->
 -- Good consumer and good producer.
 bind :: Graph a -> (a -> Graph b) -> Graph b
 bind (Graph g) f = Graph $ buildR $ \fix' ->
-  let go = foldgF (fix' EmptyF) (cata fix' . coerce . f) (overlayF fix') (connectF fix')
+  let go = graphF (fix' EmptyF) (cata fix' . coerce . f) (overlayF fix') (connectF fix')
   in cata go g
 {-# INLINE bind #-}
 
@@ -146,7 +159,7 @@ transpose (Graph g) = Graph $ buildR $ \fix' ->
 -- | Test if a vertex is in a graph.
 -- Good consumer.
 hasVertex :: Eq a => a -> Graph a -> Bool
-hasVertex v = cata (foldgF False (==v) (||) (||)) . coerce
+hasVertex v = cata (graphF False (==v) (||) (||)) . coerce
 {-# INLINE hasVertex #-}
 
 -- | Construct the graph comprising a given list of isolated vertices.
